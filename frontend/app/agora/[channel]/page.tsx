@@ -46,9 +46,7 @@ const App: React.FC = () => {
   const remoteUsersContainerRef = useRef<HTMLDivElement>(null);
   const [hasUserJoined, setHasUserJoined] = useState(false);
 
-  // TODO - move to env
-  const appId = "392bdd4cf5da44db84328a29d247b405";
-  const channelName = "test-ai";
+
 
 
   const handleUserJoined = useCallback((user: IAgoraRTCRemoteUser) => {
@@ -111,7 +109,7 @@ const App: React.FC = () => {
           cameraTrack.play(localUserContainerRef.current, { fit: 'cover' });
         }
 
-        await client.join(appId, channelName, null, null);
+        await client.join(appID, channelId, null, null);
         console.log('Joined channel successfully');
 
         await client.publish([microphoneTrack, cameraTrack]);
