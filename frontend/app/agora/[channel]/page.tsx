@@ -5,7 +5,18 @@ import { AppRootContext } from "../../AppRootContext";
 import { Badge } from "@/components/ui/badge"
 import { redirect } from 'next/navigation'
 import { Mic, MicOff, Camera, CameraOff, Phone, PhoneOff } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
+
+
+const AvatarUser = () => {
+  return (
+    <Avatar>
+      <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+      <AvatarFallback>USER</AvatarFallback>
+    </Avatar>
+  );
+}
 
 const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }> = ({ user, hasUserJoined }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,7 +58,7 @@ const App: React.FC = () => {
   const remoteUsersContainerRef = useRef<HTMLDivElement>(null);
   const [hasUserJoined, setHasUserJoined] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [isCameraOn, setIsCameraOn] = useState(false);
   const [isCallActive, setIsCallActive] = useState(true);
 
   if (!appID || !channelId) {
@@ -193,7 +204,9 @@ const App: React.FC = () => {
             ref={localUserContainerRef}
             className="w-[400px] aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
             id="localUser"
-          ></div>
+          >
+            {!isCameraOn && <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center"><AvatarUser /></div>}
+          </div>
         </div>
         <div>
           <span className="text-center block">Remote User</span>
