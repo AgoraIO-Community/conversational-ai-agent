@@ -12,11 +12,11 @@ import { AppRootContext } from "../../AppRootContext";
 // import './App.css';
 
 const App: React.FC = () => {
-  const { channel } = useParams();
-  const { appId: appID, channelId, userId } = useContext(AppRootContext);
+  // const { channel } = useParams();
+  const { appId, channelId, userId } = useContext(AppRootContext);
   useEffect(() => {
-    console.log("debugging a", channelId, appID, userId);
-  }, [channelId, appID, userId]);
+    console.log("debugging a", channelId, appId, userId);
+  }, [channelId, appId, userId]);
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
   const [localTracks, setLocalTracks] = useState<
     [IMicrophoneAudioTrack | null, ICameraVideoTrack | null]
@@ -26,15 +26,15 @@ const App: React.FC = () => {
     { uid: string; message: string }[]
   >([]);
 
-  //   TODO - move to env
-  const appId = process.env.AGORA_APP_ID;
-  const channelName = process.env.AGORA_CHANNEL;
+  // //   TODO - move to env
+  // const appId = process.env.AGORA_APP_ID;
+  const channelName = channelId;
 
   useEffect(() => {
     const init = async () => {
       clientRef.current = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
 
-      clientRef.current.on("user-published", async (user, mediaType) => {
+      clientRef.current.on("user-published", async (user: IAgoraRTCRemoteUser, mediaType: "audio"| "video") => {
         await clientRef.current!.subscribe(user, mediaType);
         if (mediaType === "video") {
           setUsers((prevUsers) => [...prevUsers, user]);
@@ -44,7 +44,7 @@ const App: React.FC = () => {
         }
       });
 
-      clientRef.current.on("user-unpublished", (user, mediaType) => {
+      clientRef.current.on("user-unpublished", (user: IAgoraRTCRemoteUser, mediaType: string) => {
         if (mediaType === "video") {
           setUsers((prevUsers) => prevUsers.filter((u) => u.uid !== user.uid));
         }
@@ -53,32 +53,17 @@ const App: React.FC = () => {
         }
       });
 
-      clientRef.current.on("stream-message", (uid, payload) => {
+      clientRef.current.on("stream-message", (uid: string, payload: Uint8Array) => {
         const message = new TextDecoder().decode(payload);
         console.info(
           `received data stream message from ${uid}: `,
           payload,
           message,
         );
-        // parse from string to json
         const parsedObject = JSON.parse(message);
         console.info(`parsedObject`, parsedObject);
-        // {
-        //     content: string,
-        //     msg_id: "item_ABfit3ZCce6gap7WbesMZ",
-        //     part_idx: 0,
-        //     total_parts: 1
-        // }
         const parsedContent = JSON.parse(parsedObject.content);
         console.info(`parsed content`, parsedContent);
-
-        // {content_index: 0,
-        // delta: "You're",
-        // event_id: "event_ABfiubmDZiLLsfUdgycfL",
-        // item_id: "item_ABfit3ZCce6gap7WbesMZ",
-        // output_index: 0,
-        // response_id: "resp_ABfit0cKR2E4T5NpFIz8w",
-        // type: "response.audio_transcript.delta"}
 
         setStreamMessages((prev) => [
           ...prev,
@@ -90,18 +75,19 @@ const App: React.FC = () => {
         await AgoraRTC.createMicrophoneAndCameraTracks();
       setLocalTracks([microphoneTrack, cameraTrack]);
 
-      await clientRef.current.join(appId, channelName, null, null);
-      await clientRef.current.publish([microphoneTrack, cameraTrack]);
+      if (appId && channelName) {
+        await clientRef.current.join(appId, channelName, null, null);
+        await clientRef.current.publish([microphoneTrack, cameraTrack]);
+      }
     };
 
     init();
 
     return () => {
       clientRef.current?.leave();
-      localTracks[0]?.close();
-      localTracks[1]?.close();
+      localTracks.forEach(track => track?.close()); // Close all tracks
     };
-  }, []);
+  }, [appId, channelName]); // Added dependencies
 
   return (
     <div className="App">
@@ -111,7 +97,11 @@ const App: React.FC = () => {
         <div className="video-container">
           <div
             className="video-player"
-            ref={(ref) => ref && localTracks[1]?.play(ref)}
+            ref={(ref) => {
+              if(ref){
+                ref && localTracks[1]?.play(ref)
+              }
+            }}
           ></div>
           <p>Local User</p>
         </div>
@@ -120,7 +110,11 @@ const App: React.FC = () => {
             <div className="video-container" key={user.uid}>
               <div
                 className="video-player"
-                ref={(ref) => ref && user.videoTrack?.play(ref)}
+                ref={(ref) => {
+                  if(ref){
+                    ref && user.videoTrack?.play(ref)
+                  }
+                }}
               ></div>
               <p>Remote User {user.uid}</p>
             </div>
