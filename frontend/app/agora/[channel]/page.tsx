@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 
 const AvatarUser = () => {
   return (
-    <Avatar>
+    <Avatar style={{ zIndex: 1, width: '120px', height: '120px' }}>
       <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
       <AvatarFallback></AvatarFallback>
     </Avatar>
