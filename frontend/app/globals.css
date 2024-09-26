@@ -79,7 +79,6 @@ body {
   }
 }
 
-
 .video-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -110,4 +109,19 @@ body {
   height: 100%;
 }
 
-/* call screen */
+.landing-page-card {
+  width: 600px;
+}
+
+.landing-page-input {
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.landing-page-card-footer {
+  justify-content: center;
+}
+
+.agora-logo {
+  align-self: center;
+}

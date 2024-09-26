@@ -1,6 +1,8 @@
 'use client'
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
 import AgoraRTC, { IAgoraRTCClient, IAgoraRTCRemoteUser, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
+import { useParams } from "next/navigation";
+import { AppRootContext } from "../../AppRootContext";
 import { Badge } from "@/components/ui/badge"
 
 
@@ -27,7 +29,15 @@ const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }
   );
 };
 
+
+// import './App.css';
+
 const App: React.FC = () => {
+  const { channel } = useParams();
+  const { appId: appID, channelId, userId } = useContext(AppRootContext);
+  useEffect(() => {
+    console.log("debugging a", channelId, appID, userId);
+  }, [channelId, appID, userId]);
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
   const [localTracks, setLocalTracks] = useState<[IMicrophoneAudioTrack | null, ICameraVideoTrack | null]>([null, null]);
   const [streamMessages, setStreamMessages] = useState<{ uid: string; message: string }[]>([]);
@@ -159,7 +169,9 @@ const App: React.FC = () => {
       <div className="stream-messages">
         <h2>Stream Messages</h2>
         {streamMessages.map((msg, index) => (
-          <p key={index}>User {msg.uid}: {msg.message}</p>
+          <p key={index}>
+            User {msg.uid}: {msg.message}
+          </p>
         ))}
       </div>
     </div>
@@ -167,4 +179,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
