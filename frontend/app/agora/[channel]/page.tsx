@@ -33,7 +33,6 @@ const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }
 // import './App.css';
 
 const App: React.FC = () => {
-  const { channel } = useParams();
   const { appId: appID, channelId, userId } = useContext(AppRootContext);
   useEffect(() => {
     console.log("debugging a", channelId, appID, userId);
