@@ -19,7 +19,7 @@ const AvatarUser = () => {
   );
 }
 
-const Userbadge = ({text}:{text:number|string}) =>{
+const Userbadge = ({ text }: { text: number | string }) => {
   return (<Badge variant="secondary" className="absolute bottom-3 right-3 p-2.5 border-0 z-[3]">{text}</Badge>)
 }
 
@@ -73,23 +73,23 @@ const App: React.FC = () => {
     redirect('/');
   }
 
-  const toggleMute = useCallback(() => {
+  const toggleMute = useCallback(async () => {
     if (localTracks[0]) {
       if (isMuted) {
-        localTracks[0].setEnabled(false);
+        await localTracks[0].setEnabled(true);
       } else {
-        localTracks[0].setEnabled(true);
+        await localTracks[0].setEnabled(false);
       }
       setIsMuted(!isMuted);
     }
   }, [localTracks, isMuted]);
 
-  const toggleCamera = useCallback(() => {
+  const toggleCamera = useCallback(async () => {
     if (localTracks[1]) {
       if (isCameraOn) {
-        localTracks[1].setEnabled(false);
+        await localTracks[1].setEnabled(false);
       } else {
-        localTracks[1].setEnabled(true);
+        await localTracks[1].setEnabled(true);
       }
       setIsCameraOn(!isCameraOn);
     }
@@ -104,7 +104,7 @@ const App: React.FC = () => {
     setIsCallActive(!isCallActive);
     // window.location.reload();
     router.push("/")
-    
+
   }, [isCallActive, localTracks]);
 
   const handleUserJoined = useCallback((user: IAgoraRTCRemoteUser) => {
@@ -241,15 +241,15 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col justify-center items-center">
       <div className='self-center w-1/2 my-10'>
-      <div>
-      <div className="space-y-1">
-        <h4 className="text-lg font-medium leading-none">Agora Conversational AI</h4>
-        <p className="text-sm text-muted-foreground">
-          Participants: {users.length + 1}
-        </p>
-      </div>
-      <Separator className="my-4" />
-    </div>
+        <div>
+          <div className="space-y-1">
+            <h4 className="text-lg font-medium leading-none">Agora Conversational AI</h4>
+            <p className="text-sm text-muted-foreground">
+              Participants: {users.length + 1}
+            </p>
+          </div>
+          <Separator className="my-4" />
+        </div>
         {/* <Card>
           <CardContent>
               <h1>Agora Video Call</h1>
@@ -257,7 +257,7 @@ const App: React.FC = () => {
           </CardContent>
         </Card> */}
       </div>
-      
+
       <div className={`grid gap-10 ${users.length ? "grid-cols-2" : "grid-cols-1"
         } justify-center h-1/2 max-w-screen-lg m-auto`}>
         <div >
