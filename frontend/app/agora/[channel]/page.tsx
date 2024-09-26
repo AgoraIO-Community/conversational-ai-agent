@@ -1,11 +1,22 @@
 'use client'
 import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
 import AgoraRTC, { IAgoraRTCClient, IAgoraRTCRemoteUser, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
-import { useParams } from "next/navigation";
 import { AppRootContext } from "../../AppRootContext";
 import { Badge } from "@/components/ui/badge"
 import { redirect } from 'next/navigation'
+import { Mic, MicOff, Camera, CameraOff, Phone, PhoneOff } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
+
+
+const AvatarUser = () => {
+  return (
+    <Avatar>
+      <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+      <AvatarFallback></AvatarFallback>
+    </Avatar>
+  );
+}
 
 const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }> = ({ user, hasUserJoined }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,18 +57,52 @@ const App: React.FC = () => {
   const localUserContainerRef = useRef<HTMLDivElement>(null);
   const remoteUsersContainerRef = useRef<HTMLDivElement>(null);
   const [hasUserJoined, setHasUserJoined] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [isCallActive, setIsCallActive] = useState(true);
 
   if (!appID || !channelId) {
     redirect('/');
   }
 
-  console.log({users})
+  const toggleMute = useCallback(() => {
+    if (localTracks[0]) {
+      if (isMuted) {
+        localTracks[0].setEnabled(false);
+      } else {
+        localTracks[0].setEnabled(true);
+      }
+      setIsMuted(!isMuted);
+    }
+  }, [localTracks, isMuted]);
+
+  const toggleCamera = useCallback(() => {
+    if (localTracks[1]) {
+      if (isCameraOn) {
+        localTracks[1].setEnabled(false);
+      } else {
+        localTracks[1].setEnabled(true);
+      }
+      setIsCameraOn(!isCameraOn);
+    }
+  }, [localTracks, isCameraOn]);
+
+  const toggleCall = useCallback(async () => {
+    if (clientRef.current) {
+      await clientRef.current.leave();
+      console.log('Left channel successfully');
+    }
+    localTracks.forEach(track => track?.close());
+    setIsCallActive(!isCallActive);
+    window.location.reload();
+  }, [isCallActive, localTracks]);
+
   const handleUserJoined = useCallback((user: IAgoraRTCRemoteUser) => {
     console.log("user joined", user);
-    if(user.uid === localUserId){
+    if (user.uid === localUserId) {
       return
     }
-    console.log({userId: user.uid}, {localUserId})
+    console.log({ userId: user.uid }, { localUserId })
     setUsers(prevUsers => {
       if (!prevUsers.some(u => u.uid === user.uid)) {
         return [...prevUsers, user];
@@ -73,7 +118,7 @@ const App: React.FC = () => {
 
   const handleUserPublished = useCallback(async (user: IAgoraRTCRemoteUser, mediaType: 'audio' | 'video') => {
     if (!clientRef.current) return;
-    if(user.uid === localUserId){
+    if (user.uid === localUserId) {
       return
     }
     console.log(`subscribing to user ${user}`)
@@ -117,14 +162,14 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
-    if(isLocalUserJoined.current) return
-    console.log({isLocalUserJoined: isLocalUserJoined.current}, 'user')
+    if (isLocalUserJoined.current) return
+    console.log({ isLocalUserJoined: isLocalUserJoined.current }, 'user')
     const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
     clientRef.current = client;
 
     const init = async () => {
       try {
-        
+
         const [microphoneTrack, cameraTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
         setLocalTracks([microphoneTrack, cameraTrack]);
 
@@ -142,7 +187,7 @@ const App: React.FC = () => {
         client.on("user-left", handleUserLeft);
         client.on("user-published", handleUserPublished);
         client.on("stream-message", handleStreamMessage);
-    
+
       } catch (error) {
         console.error('Error during initialization:', error);
       }
@@ -179,7 +224,9 @@ const App: React.FC = () => {
             ref={localUserContainerRef}
             className="w-[400px] aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
             id="localUser"
-          ></div>
+          >
+            {!isCameraOn && <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center"><AvatarUser /></div>}
+          </div>
         </div>
         <div>
           <span className="text-center block">Remote User</span>
@@ -201,6 +248,40 @@ const App: React.FC = () => {
           </p>
         ))}
       </div>
+      <div className="mt-auto absolute bottom-2 left-0 right-0 flex w-[200px] bg-gray-800 py-2 border-t border-gray-700 mx-auto justify-center items-center gap-4 rounded-[4px]">
+
+        <button
+          onClick={toggleMute}
+          className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {isMuted
+            ? <MicOff className="text-red-500 w-6 h-6" />
+            : <Mic className="text-green-500 w-6 h-6" />
+          }
+        </button>
+
+        <button
+          onClick={toggleCamera}
+          className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {isCameraOn
+            ? <Camera className="text-green-500 w-6 h-6" />
+            : <CameraOff className="text-red-500 w-6 h-6" />
+          }
+        </button>
+
+        <button
+          onClick={toggleCall}
+          className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {isCallActive
+            ? <PhoneOff className="text-red-500 w-6 h-6" />
+            : <Phone className="text-green-500 w-6 h-6" />
+          }
+        </button>
+
+      </div>
+
     </div>
   );
 };
