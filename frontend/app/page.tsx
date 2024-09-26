@@ -21,6 +21,7 @@ export default function LandingPage() {
   //state variable
   const { appId, setAppId, channelId, setChannelId, userId, setUserId } =
     useContext(AppRootContext);
+  console.log({appId}, {channelId})
   const [error, setError] = useState(false);
 
   //routing
