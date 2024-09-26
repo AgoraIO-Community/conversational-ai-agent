@@ -47,7 +47,7 @@ export default function LandingPage() {
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
         <Image
-          className="agora-logo"
+          className="self-center"
           src={AgoraLogo}
           alt="Agora logo"
           width={180}
@@ -65,34 +65,34 @@ export default function LandingPage() {
         ) : (
           <></>
         )}
-        <Card className="landing-page-card">
+        <Card className="columns-xl">
           <CardHeader>
             <CardTitle>Agora Conversational AI</CardTitle>
           </CardHeader>
           <CardContent>
             <Input
-              className="landing-page-input"
+              className="p-5 mb-5"
               type="text"
               placeholder="APP ID"
               value={appId}
               onChange={(e) => setAppId(e.target.value)}
             />
             <Input
-              className="landing-page-input"
+              className="p-5 mb-5"
               type="text"
               placeholder="Channel ID"
               value={channelId}
               onChange={(e) => setChannelId(e.target.value)}
             />
             <Input
-              className="landing-page-input"
+              className="p-5 mb-5"
               type="text"
               placeholder="User ID"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
             />
           </CardContent>
-          <CardFooter className="landing-page-card-footer">
+          <CardFooter className="justify-center">
             <Button onClick={() => join()}>Join</Button>
           </CardFooter>
         </Card>
