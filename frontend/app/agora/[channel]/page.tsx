@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
-import AgoraRTC, { IAgoraRTCClient, IAgoraRTCRemoteUser, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
+import AgoraRTC, { IAgoraRTCClient, IAgoraRTCRemoteUser, ICameraVideoTrack, IMicrophoneAudioTrack, UID } from 'agora-rtc-sdk-ng';
 import { AppRootContext } from "../../AppRootContext";
 import { Badge } from "@/components/ui/badge"
 import { redirect } from 'next/navigation'
@@ -23,7 +23,7 @@ const Userbadge = ({text}:{text:number|string}) =>{
   return (<Badge variant="secondary" className="absolute bottom-3 right-3 p-2.5 border-0 z-[3]">{text}</Badge>)
 }
 
-const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }> = ({ user, hasUserJoined }) => {
+const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean, isActiveSpeaker: boolean }> = ({ user, hasUserJoined, isActiveSpeaker }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,6 +41,7 @@ const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }
       className='w-full h-full aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative'
       id={`remote-user-${user.uid}`}
     >
+      { isActiveSpeaker &&<span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>}
       <Userbadge text={user.uid}/>
     </Card>
   );
@@ -65,6 +66,7 @@ const App: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isCallActive, setIsCallActive] = useState(true);
+  const [maxVolumeUser, setMaxVolumeUser] = useState<UID>("");
   const router = useRouter();
 
   if (!appID || !channelId) {
@@ -191,11 +193,26 @@ const App: React.FC = () => {
         await client.publish([microphoneTrack, cameraTrack]);
         console.log('Tracks published successfully');
 
+        client.enableAudioVolumeIndicator();
+
         client.on("user-joined", handleUserJoined);
         client.on("user-left", handleUserLeft);
         client.on("user-published", handleUserPublished);
         client.on("stream-message", handleStreamMessage);
+        client.on("volume-indicator", (volume) => {
+          const user = volume.reduce((max, user) => {
+            if(user.level > max.level){
+               return user
+            }
+            return max
+          }, volume[0])
 
+
+          console.log(user.uid)
+
+          const {uid} = user;
+          setMaxVolumeUser(uid)
+        })
       } catch (error) {
         console.error('Error during initialization:', error);
       }
@@ -250,6 +267,7 @@ const App: React.FC = () => {
             id="localUser"
           >
             {!isCameraOn && <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center"><AvatarUser /></div>}
+            { maxVolumeUser === localUserId &&  <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>}
             <Userbadge text={'Local User'}/>
           </Card>
           <div className="mt-auto  flex w-[300px] py-2 border-t  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
@@ -287,7 +305,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {users.length > 0 && <RemoteUser user={users[0]} hasUserJoined={hasUserJoined} />}
+        {users.length > 0 && <RemoteUser user={users[0]} hasUserJoined={hasUserJoined}  isActiveSpeaker={maxVolumeUser === localUserId? false: true}/>}
       </div>
 
 
