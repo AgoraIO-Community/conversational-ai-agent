@@ -4,17 +4,11 @@ import AgoraRTC, { IAgoraRTCClient, IAgoraRTCRemoteUser, ICameraVideoTrack, IMic
 import { AppRootContext } from "../../AppRootContext";
 import { Badge } from "@/components/ui/badge"
 import { redirect } from 'next/navigation'
+import { Card } from "@/components/ui/card"
 import { Mic, MicOff, Camera, CameraOff, Phone, PhoneOff } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { useRouter } from "next/navigation";
 
 const AvatarUser = () => {
   return (
@@ -23,6 +17,10 @@ const AvatarUser = () => {
       <AvatarFallback></AvatarFallback>
     </Avatar>
   );
+}
+
+const Userbadge = ({text}:{text:number|string}) =>{
+  return (<Badge variant="secondary" className="absolute bottom-3 right-3 p-2.5 border-0 z-[3]">{text}</Badge>)
 }
 
 const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }> = ({ user, hasUserJoined }) => {
@@ -38,13 +36,13 @@ const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }
   }, [hasUserJoined]);
 
   return (
-    <div
+    <Card
       ref={containerRef}
-      className='w-[400px] aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative'
+      className='w-full h-full aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative'
       id={`remote-user-${user.uid}`}
     >
-      <Badge variant="outline" className="absolute bottom-1 right-2 z-[3] bg-gray-500 text-white">{user.uid}</Badge>
-    </div>
+      <Userbadge text={user.uid}/>
+    </Card>
   );
 };
 
@@ -67,6 +65,7 @@ const App: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isCallActive, setIsCallActive] = useState(true);
+  const router = useRouter();
 
   if (!appID || !channelId) {
     redirect('/');
@@ -101,7 +100,9 @@ const App: React.FC = () => {
     }
     localTracks.forEach(track => track?.close());
     setIsCallActive(!isCallActive);
-    window.location.reload();
+    // window.location.reload();
+    router.push("/")
+    
   }, [isCallActive, localTracks]);
 
   const handleUserJoined = useCallback((user: IAgoraRTCRemoteUser) => {
@@ -133,11 +134,11 @@ const App: React.FC = () => {
 
     if (mediaType === "video" && user.videoTrack) {
       console.log("subscribe video success");
-      if (remoteUsersContainerRef.current) {
-        setHasUserJoined(true);
-      } else {
-        console.error("Remote users container not found");
-      }
+      // if (remoteUsersContainerRef.current) {
+      setHasUserJoined(true);
+      // } else {
+      //   console.error("Remote users container not found");
+      // }
     }
     if (mediaType === "audio" && user.audioTrack) {
       console.log("subscribe audio success");
@@ -149,17 +150,17 @@ const App: React.FC = () => {
     const message = new TextDecoder().decode(payload);
     console.info(`received data stream message from ${uid}: `, payload, message);
 
-    let parsedmessage 
+    let parsedmessage
     let parsedContent
-    try{
-     parsedmessage = JSON.parse(message);
+    try {
+      parsedmessage = JSON.parse(message);
 
-     try{
-      parsedContent = JSON.parse(parsedmessage)
-     }catch(e){
-      console.log(`Unable to parse Content - error - ${e}`)
-     }
-    }catch(e){
+      try {
+        parsedContent = JSON.parse(parsedmessage)
+      } catch (e) {
+        console.log(`Unable to parse Content - error - ${e}`)
+      }
+    } catch (e) {
       console.log(`Unable to parse message - error- ${e}`)
     }
 
@@ -240,70 +241,55 @@ const App: React.FC = () => {
         </Card> */}
       </div>
       
-      <div className="flex flex-row justify-center items-center gap-5">
-        <div>
-          <span className="text-center block">Local User</span>
-          <div
+      <div className={`grid gap-10 ${users.length ? "grid-cols-2" : "grid-cols-1"
+        } justify-center h-1/2 max-w-screen-lg m-auto`}>
+        <div >
+          <Card
             ref={localUserContainerRef}
-            className="w-[400px] aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
+            className={`h-full ${users.length ? 'w-full' : 'w-[600px] m-auto'} aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative mb-5`}
             id="localUser"
           >
             {!isCameraOn && <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center"><AvatarUser /></div>}
+            <Userbadge text={'Local User'}/>
+          </Card>
+          <div className="mt-auto  flex w-[300px] py-2 border-t  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
+
+            <button
+              onClick={toggleMute}
+              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
+            >
+              {isMuted
+                ? <MicOff className="text-red-500 w-6 h-6" />
+                : <Mic className="text-white-300 w-6 h-6" />
+              }
+            </button>
+
+            <button
+              onClick={toggleCamera}
+              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors"
+            >
+              {isCameraOn
+                ? <Camera className="text-white-300 w-6 h-6" />
+                : <CameraOff className="text-red-500 w-6 h-6" />
+              }
+            </button>
+
+            <button
+              onClick={toggleCall}
+              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
+            >
+              {isCallActive
+                ? <PhoneOff className="text-red-500 w-6 h-6" />
+                : <Phone className="text-white-300 w-6 h-6" />
+              }
+            </button>
+
           </div>
         </div>
-        <div>
-          <span className="text-center block">Remote User</span>
-          <div
-            ref={remoteUsersContainerRef}
-            className="w-[400px] aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
-            id="remoteUser"
-          >
-            {users.length > 0 && <RemoteUser user={users[0]} hasUserJoined={hasUserJoined} />}
-          </div>
-        </div>
+
+        {users.length > 0 && <RemoteUser user={users[0]} hasUserJoined={hasUserJoined} />}
       </div>
 
-      {/* <div className="stream-messages">
-        <h2>Stream Messages</h2>
-        {streamMessages.map((msg, index) => (
-          <p key={index}>
-            User {msg.uid}: {msg.message}
-          </p>
-        ))}
-      </div> */}
-      <div className="mt-auto absolute bottom-2 left-0 right-0 flex w-[200px] bg-gray-800 py-2 border-t border-gray-700 mx-auto justify-center items-center gap-4 rounded-[4px]">
-
-        <button
-          onClick={toggleMute}
-          className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {isMuted
-            ? <MicOff className="text-red-500 w-6 h-6" />
-            : <Mic className="text-green-500 w-6 h-6" />
-          }
-        </button>
-
-        <button
-          onClick={toggleCamera}
-          className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {isCameraOn
-            ? <Camera className="text-green-500 w-6 h-6" />
-            : <CameraOff className="text-red-500 w-6 h-6" />
-          }
-        </button>
-
-        <button
-          onClick={toggleCall}
-          className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {isCallActive
-            ? <PhoneOff className="text-red-500 w-6 h-6" />
-            : <Phone className="text-green-500 w-6 h-6" />
-          }
-        </button>
-
-      </div>
 
     </div>
   );
