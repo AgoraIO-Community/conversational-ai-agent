@@ -38,8 +38,8 @@ const App: React.FC = () => {
       });
 
       clientRef.current.on("stream-message", (uid, payload) => {
-        console.info(`received data stream message from ${uid}: `, payload, message);
         const message = new TextDecoder().decode(payload);
+        console.info(`received data stream message from ${uid}: `, payload, message);
         // parse from string to json
         const parsedObject = JSON.parse(message);
         console.info(`parsedObject`, parsedObject);
