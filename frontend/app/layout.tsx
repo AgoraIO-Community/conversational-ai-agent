@@ -3,7 +3,7 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import { useState } from "react";
-import { AppRootContext } from "./AppRootContext";
+import { AppRootProvider } from "./AppRootContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,26 +26,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [appId, setAppId] = useState("");
-  const [channelId, setChannelId] = useState("");
-  const [userId, setUserId] = useState("");
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AppRootContext.Provider
-          value={{
-            appId,
-            setAppId,
-            channelId,
-            setChannelId,
-            userId,
-            setUserId,
-          }}
-        >
+        <AppRootProvider>
           {children}
-        </AppRootContext.Provider>
+        </AppRootProvider>
       </body>
     </html>
   );

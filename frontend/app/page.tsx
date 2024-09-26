@@ -19,8 +19,9 @@ import { AppRootContext } from "./AppRootContext";
 
 export default function LandingPage() {
   //state variable
-  const { appId, setAppId, channelId, setChannelId, userId, setUserId } =
+  const { appId, setAppId, channelId, setChannelId, localUserName, setUserName } =
     useContext(AppRootContext);
+  console.log({appId}, {channelId})
   const [error, setError] = useState(false);
 
   //routing
@@ -28,7 +29,7 @@ export default function LandingPage() {
 
   //onclick for join button
   const join = () => {
-    if (appId === "" || channelId === "" || userId === "") {
+    if (appId === "" || channelId === "" || localUserName === "") {
       setError(true);
       return;
     }
@@ -88,8 +89,8 @@ export default function LandingPage() {
               className="p-5 mb-5"
               type="text"
               placeholder="User ID"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
+              value={localUserName}
+              onChange={(e) => setUserName(e.target.value)}
             />
           </CardContent>
           <CardFooter className="justify-center">

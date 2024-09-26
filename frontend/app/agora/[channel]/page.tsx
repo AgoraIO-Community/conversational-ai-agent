@@ -34,11 +34,11 @@ const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }
 // import './App.css';
 
 const App: React.FC = () => {
-  const { appId: appID, channelId, userId } = useContext(AppRootContext);
+  const { appId: appID, channelId, localUserName, localUserId, serLocalUserId } = useContext(AppRootContext);
+  const isLocalUserJoined = useRef(false)
   useEffect(() => {
-    console.log("debugging a", channelId, appID, userId);
-  }, [channelId, appID, userId]);
-
+    console.log("debugging a", channelId, appID, localUserName);
+  }, [channelId, appID, localUserName]);
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
   const [localTracks, setLocalTracks] = useState<[IMicrophoneAudioTrack | null, ICameraVideoTrack | null]>([null, null]);
   const [streamMessages, setStreamMessages] = useState<{ uid: string; message: string }[]>([]);
@@ -50,7 +50,7 @@ const App: React.FC = () => {
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isCallActive, setIsCallActive] = useState(true);
 
-  if (!appID || !channelId || !userId) {
+  if (!appID || !channelId) {
     redirect('/');
   }
 
@@ -83,6 +83,10 @@ const App: React.FC = () => {
 
   const handleUserJoined = useCallback((user: IAgoraRTCRemoteUser) => {
     console.log("user joined", user);
+    if (user.uid === localUserId) {
+      return
+    }
+    console.log({ userId: user.uid }, { localUserId })
     setUsers(prevUsers => {
       if (!prevUsers.some(u => u.uid === user.uid)) {
         return [...prevUsers, user];
@@ -98,7 +102,10 @@ const App: React.FC = () => {
 
   const handleUserPublished = useCallback(async (user: IAgoraRTCRemoteUser, mediaType: 'audio' | 'video') => {
     if (!clientRef.current) return;
-
+    if (user.uid === localUserId) {
+      return
+    }
+    console.log(`subscribing to user ${user}`)
     await clientRef.current.subscribe(user, mediaType);
 
     if (mediaType === "video" && user.videoTrack) {
@@ -124,27 +131,32 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
+    if (isLocalUserJoined.current) return
+    console.log({ isLocalUserJoined: isLocalUserJoined.current }, 'user')
     const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
     clientRef.current = client;
 
-    client.on("user-joined", handleUserJoined);
-    client.on("user-left", handleUserLeft);
-    client.on("user-published", handleUserPublished);
-    client.on("stream-message", handleStreamMessage);
-
     const init = async () => {
       try {
+
         const [microphoneTrack, cameraTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
         setLocalTracks([microphoneTrack, cameraTrack]);
 
         if (localUserContainerRef.current && cameraTrack) {
           cameraTrack.play(localUserContainerRef.current, { fit: 'cover' });
         }
-        await client.join(appID, channelId, null, null);
-        console.log('Joined channel successfully');
-
+        const localUid = await client.join(appID, channelId, null, null);
+        console.log(`Local user joined channel successfully - userId - ${localUid} `);
+        serLocalUserId(localUid)
+        isLocalUserJoined.current = true
         await client.publish([microphoneTrack, cameraTrack]);
         console.log('Tracks published successfully');
+
+        client.on("user-joined", handleUserJoined);
+        client.on("user-left", handleUserLeft);
+        client.on("user-published", handleUserPublished);
+        client.on("stream-message", handleStreamMessage);
+
       } catch (error) {
         console.error('Error during initialization:', error);
       }
@@ -168,7 +180,7 @@ const App: React.FC = () => {
 
       cleanup().catch(err => console.error('Error during cleanup:', err));
     };
-  }, [handleUserJoined, handleUserLeft, handleUserPublished, handleStreamMessage, appID, channelId]);
+  }, []);
 
   return (
     <div className="App">
