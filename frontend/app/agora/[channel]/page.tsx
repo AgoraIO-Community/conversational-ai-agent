@@ -19,6 +19,10 @@ const AvatarUser = () => {
   );
 }
 
+const Userbadge = ({text}:{text:number|string}) =>{
+  return (<Badge variant="secondary" className="absolute bottom-3 right-3 p-2.5 border-0 z-[3]">{text}</Badge>)
+}
+
 const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }> = ({ user, hasUserJoined }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -37,7 +41,7 @@ const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }
       className='w-full h-full aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative'
       id={`remote-user-${user.uid}`}
     >
-      <Badge variant="outline" className="absolute bottom-1 right-2 z-[3] bg-gray-500 text-white">{user.uid}</Badge>
+      <Userbadge text={user.uid}/>
     </Card>
   );
 };
@@ -228,7 +232,7 @@ const App: React.FC = () => {
             id="localUser"
           >
             {!isCameraOn && <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center"><AvatarUser /></div>}
-
+            <Userbadge text={'Local User'}/>
           </Card>
           <div className="mt-auto  flex w-[300px] bg-gray-800 py-2 border-t border-gray-700 mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
 
