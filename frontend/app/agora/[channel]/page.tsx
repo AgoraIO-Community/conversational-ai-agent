@@ -96,6 +96,21 @@ const App: React.FC = () => {
   const handleStreamMessage = useCallback((uid: number, payload: Uint8Array) => {
     const message = new TextDecoder().decode(payload);
     console.info(`received data stream message from ${uid}: `, payload, message);
+
+    let parsedmessage 
+    let parsedContent
+    try{
+     parsedmessage = JSON.parse(message);
+
+     try{
+      parsedContent = JSON.parse(parsedmessage)
+     }catch(e){
+      console.log(`Unable to parse Content - error - ${e}`)
+     }
+    }catch(e){
+      console.log(`Unable to parse message - error- ${e}`)
+    }
+
     setStreamMessages(prev => [...prev, { uid: uid.toString(), message }]);
   }, []);
 

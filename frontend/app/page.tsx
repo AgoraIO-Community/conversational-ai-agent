@@ -94,7 +94,7 @@ export default function LandingPage() {
             />
           </CardContent>
           <CardFooter className="justify-center">
-            <Button onClick={() => join()}>Join</Button>
+            <Button className="w-full" onClick={() => join()}>Join</Button>
           </CardFooter>
         </Card>
       </main>
