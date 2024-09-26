@@ -220,13 +220,50 @@ const App: React.FC = () => {
       <p>Participants: {users.length + 1}</p>
       <div className={`grid gap-10 ${users.length ? "grid-cols-2" : "grid-cols-1"
         } justify-center m-10 h-1/2`}>
-        <Card
-          ref={localUserContainerRef}
-          className={`h-full ${users.length ? 'w-full' : 'w-[600px] m-auto'} aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative`}
-          id="localUser"
-        >
-          {!isCameraOn && <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center"><AvatarUser /></div>}
-        </Card>
+        <div >
+          <Card
+            ref={localUserContainerRef}
+            className={`h-full ${users.length ? 'w-full' : 'w-[600px] m-auto'} aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative mb-5`}
+            id="localUser"
+          >
+            {!isCameraOn && <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center"><AvatarUser /></div>}
+
+          </Card>
+          <div className="mt-auto  flex w-[300px] bg-gray-800 py-2 border-t border-gray-700 mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
+
+            <button
+              onClick={toggleMute}
+              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
+            >
+              {isMuted
+                ? <MicOff className="text-red-500 w-6 h-6" />
+                : <Mic className="text-white-300 w-6 h-6" />
+              }
+            </button>
+
+            <button
+              onClick={toggleCamera}
+              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors"
+            >
+              {isCameraOn
+                ? <Camera className="text-white-300 w-6 h-6" />
+                : <CameraOff className="text-red-500 w-6 h-6" />
+              }
+            </button>
+
+            <button
+              onClick={toggleCall}
+              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
+            >
+              {isCallActive
+                ? <PhoneOff className="text-red-500 w-6 h-6" />
+                : <Phone className="text-white-300 w-6 h-6" />
+              }
+            </button>
+
+          </div>
+        </div>
+
         {users.length > 0 && <RemoteUser user={users[0]} hasUserJoined={hasUserJoined} />}
       </div>
 
@@ -238,39 +275,7 @@ const App: React.FC = () => {
           </p>
         ))}
       </div>
-      <div className="mt-auto absolute bottom-2 left-0 right-0 flex w-[200px] bg-gray-800 py-2 border-t border-gray-700 mx-auto justify-center items-center gap-4 rounded-[4px]">
 
-        <button
-          onClick={toggleMute}
-          className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {isMuted
-            ? <MicOff className="text-red-500 w-6 h-6" />
-            : <Mic className="text-green-500 w-6 h-6" />
-          }
-        </button>
-
-        <button
-          onClick={toggleCamera}
-          className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {isCameraOn
-            ? <Camera className="text-green-500 w-6 h-6" />
-            : <CameraOff className="text-red-500 w-6 h-6" />
-          }
-        </button>
-
-        <button
-          onClick={toggleCall}
-          className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {isCallActive
-            ? <PhoneOff className="text-red-500 w-6 h-6" />
-            : <Phone className="text-green-500 w-6 h-6" />
-          }
-        </button>
-
-      </div>
 
     </div>
   );
