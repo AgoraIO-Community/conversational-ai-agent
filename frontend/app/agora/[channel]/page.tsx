@@ -214,7 +214,7 @@ const App: React.FC = () => {
       }
     });
 
-    const significantSpeaker = Object.entries(volumeHistoryRef.current).find(([uid, history]) => {
+    const significantSpeaker = Object.entries(volumeHistoryRef.current).find(([_, history]) => {
       const average = history.reduce((sum, val) => sum + val, 0) / history.length;
       const variance = history.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / history.length;
       return average > 30 && variance > 100; // Adjust these thresholds as needed
