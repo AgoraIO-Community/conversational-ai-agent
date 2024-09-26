@@ -58,7 +58,7 @@ const App: React.FC = () => {
   const remoteUsersContainerRef = useRef<HTMLDivElement>(null);
   const [hasUserJoined, setHasUserJoined] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [isCameraOn, setIsCameraOn] = useState(false);
+  const [isCameraOn, setIsCameraOn] = useState(true);
   const [isCallActive, setIsCallActive] = useState(true);
 
   if (!appID || !channelId) {
