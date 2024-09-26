@@ -7,8 +7,8 @@ import { redirect } from 'next/navigation'
 import { Card } from "@/components/ui/card"
 import { Mic, MicOff, Camera, CameraOff, Phone, PhoneOff } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
-
+import { Separator } from "@/components/ui/separator"
+import { useRouter } from "next/navigation";
 
 const AvatarUser = () => {
   return (
@@ -65,6 +65,7 @@ const App: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isCallActive, setIsCallActive] = useState(true);
+  const router = useRouter();
 
   if (!appID || !channelId) {
     redirect('/');
@@ -99,7 +100,9 @@ const App: React.FC = () => {
     }
     localTracks.forEach(track => track?.close());
     setIsCallActive(!isCallActive);
-    window.location.reload();
+    // window.location.reload();
+    router.push("/")
+    
   }, [isCallActive, localTracks]);
 
   const handleUserJoined = useCallback((user: IAgoraRTCRemoteUser) => {
@@ -219,10 +222,25 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="App h-screen">
-      <h1>Agora Video Call</h1>
-      <p>Participants: {users.length + 1}</p>
-
+    <div className="flex flex-col justify-center items-center">
+      <div className='self-center w-1/2 my-10'>
+      <div>
+      <div className="space-y-1">
+        <h4 className="text-lg font-medium leading-none">Agora Conversational AI</h4>
+        <p className="text-sm text-muted-foreground">
+          Participants: {users.length + 1}
+        </p>
+      </div>
+      <Separator className="my-4" />
+    </div>
+        {/* <Card>
+          <CardContent>
+              <h1>Agora Video Call</h1>
+              <p>Participants: {users.length + 1}</p>
+          </CardContent>
+        </Card> */}
+      </div>
+      
       <div className={`grid gap-10 ${users.length ? "grid-cols-2" : "grid-cols-1"
         } justify-center h-1/2 max-w-screen-lg m-auto`}>
         <div >
@@ -234,7 +252,7 @@ const App: React.FC = () => {
             {!isCameraOn && <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center"><AvatarUser /></div>}
             <Userbadge text={'Local User'}/>
           </Card>
-          <div className="mt-auto  flex w-[300px] bg-gray-800 py-2 border-t border-gray-700 mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
+          <div className="mt-auto  flex w-[300px] py-2 border-t  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
 
             <button
               onClick={toggleMute}
@@ -270,15 +288,6 @@ const App: React.FC = () => {
         </div>
 
         {users.length > 0 && <RemoteUser user={users[0]} hasUserJoined={hasUserJoined} />}
-      </div>
-
-      <div className="stream-messages">
-        <h2>Stream Messages</h2>
-        {streamMessages.map((msg, index) => (
-          <p key={index}>
-            User {msg.uid}: {msg.message}
-          </p>
-        ))}
       </div>
 
 
