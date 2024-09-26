@@ -220,7 +220,7 @@ const App: React.FC = () => {
       <p>Participants: {users.length + 1}</p>
       <div className={`grid gap-10 ${
           users.length ? "grid-cols-2" : "grid-cols-1"
-        } justify-center m-10 h-1/2`}>
+        } justify-center h-1/2 max-w-screen-lg m-auto`}>
           <Card
             ref={localUserContainerRef}
             className={`h-full ${users.length ? 'w-full' : 'w-[600px] m-auto'} aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative`}
