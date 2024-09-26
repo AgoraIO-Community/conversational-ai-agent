@@ -6,8 +6,15 @@ import { Badge } from "@/components/ui/badge"
 import { redirect } from 'next/navigation'
 import { Mic, MicOff, Camera, CameraOff, Phone, PhoneOff } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
-
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 
 const AvatarUser = () => {
   return (
@@ -214,9 +221,25 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="App">
-      <h1>Agora Video Call</h1>
-      <p>Participants: {users.length + 1}</p>
+    <div className="flex flex-col justify-center items-center">
+      <div className='self-center w-1/2 my-10'>
+      <div>
+      <div className="space-y-1">
+        <h4 className="text-lg font-medium leading-none">Agora Conversational AI</h4>
+        <p className="text-sm text-muted-foreground">
+          Participants: {users.length + 1}
+        </p>
+      </div>
+      <Separator className="my-4" />
+    </div>
+        {/* <Card>
+          <CardContent>
+              <h1>Agora Video Call</h1>
+              <p>Participants: {users.length + 1}</p>
+          </CardContent>
+        </Card> */}
+      </div>
+      
       <div className="flex flex-row justify-center items-center gap-5">
         <div>
           <span className="text-center block">Local User</span>
@@ -240,14 +263,14 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      <div className="stream-messages">
+      {/* <div className="stream-messages">
         <h2>Stream Messages</h2>
         {streamMessages.map((msg, index) => (
           <p key={index}>
             User {msg.uid}: {msg.message}
           </p>
         ))}
-      </div>
+      </div> */}
       <div className="mt-auto absolute bottom-2 left-0 right-0 flex w-[200px] bg-gray-800 py-2 border-t border-gray-700 mx-auto justify-center items-center gap-4 rounded-[4px]">
 
         <button
