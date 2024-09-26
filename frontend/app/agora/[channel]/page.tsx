@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { AppRootContext } from "../../AppRootContext";
 import { Badge } from "@/components/ui/badge"
 import { redirect } from 'next/navigation'
-
+import { Card } from "@/components/ui/card"
 
 const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }> = ({ user, hasUserJoined }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -20,13 +20,13 @@ const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }
   }, [hasUserJoined]);
 
   return (
-    <div
+    <Card
       ref={containerRef}
-      className='w-[400px] aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative'
+      className='w-full h-full aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative'
       id={`remote-user-${user.uid}`}
     >
       <Badge variant="outline" className="absolute bottom-1 right-2 z-[3] bg-gray-500 text-white">{user.uid}</Badge>
-    </div>
+    </Card>
   );
 };
 
@@ -81,11 +81,11 @@ const App: React.FC = () => {
 
     if (mediaType === "video" && user.videoTrack) {
       console.log("subscribe video success");
-      if (remoteUsersContainerRef.current) {
+      // if (remoteUsersContainerRef.current) {
         setHasUserJoined(true);
-      } else {
-        console.error("Remote users container not found");
-      }
+      // } else {
+      //   console.error("Remote users container not found");
+      // }
     }
     if (mediaType === "audio" && user.audioTrack) {
       console.log("subscribe audio success");
@@ -154,28 +154,18 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="App">
+    <div className="App h-screen">
       <h1>Agora Video Call</h1>
       <p>Participants: {users.length + 1}</p>
-      <div className="flex flex-row justify-center items-center gap-5">
-        <div>
-          <span className="text-center block">Local User</span>
-          <div
+      <div className={`grid gap-10 ${
+          users.length ? "grid-cols-2" : "grid-cols-1"
+        } justify-center m-10 h-1/2`}>
+          <Card
             ref={localUserContainerRef}
-            className="w-[400px] aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
+            className={`h-full ${users.length ? 'w-full' : 'w-[600px] m-auto'} aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative`}
             id="localUser"
-          ></div>
-        </div>
-        <div>
-          <span className="text-center block">Remote User</span>
-          <div
-            ref={remoteUsersContainerRef}
-            className="w-[400px] aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
-            id="remoteUser"
-          >
-            {users.length > 0 && <RemoteUser user={users[0]} hasUserJoined={hasUserJoined} />}
-          </div>
-        </div>
+          />
+          {users.length > 0 && <RemoteUser user={users[0]} hasUserJoined={hasUserJoined} />}
       </div>
 
       <div className="stream-messages">
