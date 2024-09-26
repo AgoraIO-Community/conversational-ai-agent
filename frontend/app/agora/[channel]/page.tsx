@@ -218,8 +218,9 @@ const App: React.FC = () => {
     <div className="App h-screen">
       <h1>Agora Video Call</h1>
       <p>Participants: {users.length + 1}</p>
+
       <div className={`grid gap-10 ${users.length ? "grid-cols-2" : "grid-cols-1"
-        } justify-center m-10 h-1/2`}>
+        } justify-center h-1/2 max-w-screen-lg m-auto`}>
         <div >
           <Card
             ref={localUserContainerRef}
