@@ -40,6 +40,7 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -72,6 +73,7 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -94,15 +96,18 @@ body {
 .video-player {
   width: 100%;
   height: 0;
-  padding-bottom: 75%; /* 4:3 aspect ratio */
+  padding-bottom: 75%;
+  /* 4:3 aspect ratio */
   position: relative;
   background-color: #f0f0f0;
 }
 
-.video-player > div {
+.video-player>div {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
 }
+
+/* call screen */
