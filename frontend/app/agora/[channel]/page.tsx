@@ -13,7 +13,7 @@ const AvatarUser = () => {
   return (
     <Avatar>
       <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-      <AvatarFallback>USER</AvatarFallback>
+      <AvatarFallback></AvatarFallback>
     </Avatar>
   );
 }
@@ -87,10 +87,15 @@ const App: React.FC = () => {
     }
   }, [localTracks, isCameraOn]);
 
-  const toggleCall = useCallback(() => {
+  const toggleCall = useCallback(async () => {
+    if (clientRef.current) {
+      await clientRef.current.leave();
+      console.log('Left channel successfully');
+    }
+    localTracks.forEach(track => track?.close());
     setIsCallActive(!isCallActive);
     window.location.reload();
-  }, [isCallActive]);
+  }, [isCallActive, localTracks]);
 
   const handleUserJoined = useCallback((user: IAgoraRTCRemoteUser) => {
     console.log("user joined", user);
