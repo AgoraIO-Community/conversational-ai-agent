@@ -69,9 +69,9 @@ const App: React.FC = () => {
   const toggleMute = useCallback(() => {
     if (localTracks[0]) {
       if (isMuted) {
-        localTracks[0].setEnabled(false);
+        localTracks[0].setMuted(false);
       } else {
-        localTracks[0].setEnabled(true);
+        localTracks[0].setMuted(true);
       }
       setIsMuted(!isMuted);
     }
@@ -80,9 +80,9 @@ const App: React.FC = () => {
   const toggleCamera = useCallback(() => {
     if (localTracks[1]) {
       if (isCameraOn) {
-        localTracks[1].setEnabled(false);
+        localTracks[1].setMuted(true);
       } else {
-        localTracks[1].setEnabled(true);
+        localTracks[1].setMuted(false);
       }
       setIsCameraOn(!isCameraOn);
     }
