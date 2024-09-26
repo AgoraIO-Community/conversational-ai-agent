@@ -215,37 +215,40 @@ const App: React.FC = () => {
           </p>
         ))}
       </div>
-      <div className="mt-auto w-full bg-gray-800 py-4 border-t border-gray-700 ">
-        <div className="flex justify-center items-center gap-2">
-          <button
-            onClick={toggleMute}
-            className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {isMuted
-              ? <MicOff className="text-red-500 w-6 h-6" />
-              : <Mic className="text-green-500 w-6 h-6" />
-            }
-          </button>
-          <button
-            onClick={toggleCamera}
-            className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {isCameraOn
-              ? <Camera className="text-green-500 w-6 h-6" />
-              : <CameraOff className="text-red-500 w-6 h-6" />
-            }
-          </button>
-          <button
-            onClick={toggleCall}
-            className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {isCallActive
-              ? <PhoneOff className="text-red-500 w-6 h-6" />
-              : <Phone className="text-green-500 w-6 h-6" />
-            }
-          </button>
-        </div>
+      <div className="mt-auto absolute bottom-2 left-0 right-0 flex w-[200px] bg-gray-800 py-2 border-t border-gray-700 mx-auto justify-center items-center gap-4 rounded-[4px]">
+
+        <button
+          onClick={toggleMute}
+          className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {isMuted
+            ? <MicOff className="text-red-500 w-6 h-6" />
+            : <Mic className="text-green-500 w-6 h-6" />
+          }
+        </button>
+
+        <button
+          onClick={toggleCamera}
+          className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {isCameraOn
+            ? <Camera className="text-green-500 w-6 h-6" />
+            : <CameraOff className="text-red-500 w-6 h-6" />
+          }
+        </button>
+
+        <button
+          onClick={toggleCall}
+          className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {isCallActive
+            ? <PhoneOff className="text-red-500 w-6 h-6" />
+            : <Phone className="text-green-500 w-6 h-6" />
+          }
+        </button>
+
       </div>
+
     </div>
   );
 };
