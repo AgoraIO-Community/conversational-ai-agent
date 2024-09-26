@@ -10,6 +10,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { useRouter } from "next/navigation";
 
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout | null = null;
+  return (...args: Parameters<T>) => {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
+
+
 const AvatarUser = () => {
   return (
     <Avatar style={{ zIndex: 1, width: '120px', height: '120px' }}>
@@ -18,6 +27,21 @@ const AvatarUser = () => {
     </Avatar>
   );
 }
+
+const ActiveSpeakerAnimation = ({ isActive }: { isActive: boolean }) => {
+  if (!isActive) return null;
+
+  return (
+    <div className="active-speaker-waveform">
+      <div className="bar"></div>
+      <div className="bar"></div>
+      <div className="bar"></div>
+      <div className="bar"></div>
+      <div className="bar"></div>
+    </div>
+  );
+};
+
 
 const Userbadge = ({ text }: { text: number | string }) => {
   return (<Badge variant="secondary" className="absolute bottom-3 right-3 p-2.5 border-0 z-[3]">{text}</Badge>)
@@ -65,7 +89,15 @@ const App: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isCallActive, setIsCallActive] = useState(true);
+  const [activeSpeaker, setActiveSpeaker] = useState<number | null>(null);
   const router = useRouter();
+
+  const debouncedSetActiveSpeaker = useRef(debounce((uid: number | null) => {
+    debugger
+    setActiveSpeaker(uid);
+  }, 100));
+  const lastActiveTimeRef = useRef<number>(0);
+  const volumeHistoryRef = useRef<{ [uid: string]: number[] }>({});
 
   if (!appID || !channelId) {
     redirect('/');
@@ -169,10 +201,43 @@ const App: React.FC = () => {
 
 
 
+  const handleVolumeIndicator = useCallback((volumes: { level: number; uid: number | string }[]) => {
+    const currentTime = Date.now();
+
+    volumes.forEach(({ level, uid }) => {
+      if (!volumeHistoryRef.current[uid]) {
+        volumeHistoryRef.current[uid] = [];
+      }
+      volumeHistoryRef.current[uid].push(level);
+      if (volumeHistoryRef.current[uid].length > 10) {
+        volumeHistoryRef.current[uid].shift();
+      }
+    });
+
+    const significantSpeaker = Object.entries(volumeHistoryRef.current).find(([uid, history]) => {
+      const average = history.reduce((sum, val) => sum + val, 0) / history.length;
+      const variance = history.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / history.length;
+      return average > 30 && variance > 100; // Adjust these thresholds as needed
+    });
+
+    if (significantSpeaker) {
+      const [uid] = significantSpeaker;
+      lastActiveTimeRef.current = currentTime;
+      debouncedSetActiveSpeaker.current(Number(uid))
+    } else if (activeSpeaker !== null && currentTime - lastActiveTimeRef.current > 1000) {
+      debouncedSetActiveSpeaker.current(null)
+    }
+
+    console.log('Volume histories:', volumeHistoryRef.current);
+  }, [activeSpeaker]);
+
+
+
   useEffect(() => {
     if (isLocalUserJoined.current) return
     console.log({ isLocalUserJoined: isLocalUserJoined.current }, 'user')
     const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+    client.enableAudioVolumeIndicator();
     clientRef.current = client;
 
     const init = async () => {
@@ -195,6 +260,7 @@ const App: React.FC = () => {
         client.on("user-left", handleUserLeft);
         client.on("user-published", handleUserPublished);
         client.on("stream-message", handleStreamMessage);
+        client.on("volume-indicator", handleVolumeIndicator);
 
       } catch (error) {
         console.error('Error during initialization:', error);
@@ -251,7 +317,9 @@ const App: React.FC = () => {
           >
             {!isCameraOn && <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center"><AvatarUser /></div>}
             <Userbadge text={'Local User'} />
+            <ActiveSpeakerAnimation isActive={activeSpeaker === localUserId} />
           </Card>
+
           <div className="mt-auto  flex w-[300px] py-2 border-t  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
 
             <button
@@ -296,3 +364,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

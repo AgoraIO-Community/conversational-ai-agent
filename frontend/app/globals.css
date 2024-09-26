@@ -166,3 +166,55 @@ body {
     --chart-5: 340 75% 55%;
   }
 }
+
+.active-speaker-waveform {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: flex;
+  align-items: flex-end;
+  height: 20px;
+  width: 30px;
+}
+
+.active-speaker-waveform .bar {
+  width: 4px;
+  margin-right: 2px;
+  background-color: #00ff00;
+  animation: waveform 0.5s ease-in-out infinite alternate;
+}
+
+.active-speaker-waveform .bar:nth-child(1) {
+  height: 60%;
+  animation-delay: 0.0s;
+}
+
+.active-speaker-waveform .bar:nth-child(2) {
+  height: 80%;
+  animation-delay: 0.1s;
+}
+
+.active-speaker-waveform .bar:nth-child(3) {
+  height: 100%;
+  animation-delay: 0.2s;
+}
+
+.active-speaker-waveform .bar:nth-child(4) {
+  height: 80%;
+  animation-delay: 0.3s;
+}
+
+.active-speaker-waveform .bar:nth-child(5) {
+  height: 60%;
+  animation-delay: 0.4s;
+}
+
+@keyframes waveform {
+  0% {
+    transform: scaleY(0.5);
+  }
+
+  100% {
+    transform: scaleY(1);
+  }
+}
