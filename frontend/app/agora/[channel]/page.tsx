@@ -4,6 +4,7 @@ import AgoraRTC, { IAgoraRTCClient, IAgoraRTCRemoteUser, ICameraVideoTrack, IMic
 import { useParams } from "next/navigation";
 import { AppRootContext } from "../../AppRootContext";
 import { Badge } from "@/components/ui/badge"
+import { redirect } from 'next/navigation'
 
 
 const RemoteUser: React.FC<{ user: IAgoraRTCRemoteUser, hasUserJoined: boolean }> = ({ user, hasUserJoined }) => {
@@ -45,7 +46,9 @@ const App: React.FC = () => {
   const remoteUsersContainerRef = useRef<HTMLDivElement>(null);
   const [hasUserJoined, setHasUserJoined] = useState(false);
 
-
+  if (!appID || !channelId || !userId) {
+    redirect('/');
+  }
 
 
   const handleUserJoined = useCallback((user: IAgoraRTCRemoteUser) => {
@@ -107,7 +110,6 @@ const App: React.FC = () => {
         if (localUserContainerRef.current && cameraTrack) {
           cameraTrack.play(localUserContainerRef.current, { fit: 'cover' });
         }
-
         await client.join(appID, channelId, null, null);
         console.log('Joined channel successfully');
 
@@ -136,7 +138,7 @@ const App: React.FC = () => {
 
       cleanup().catch(err => console.error('Error during cleanup:', err));
     };
-  }, [handleUserJoined, handleUserLeft, handleUserPublished, handleStreamMessage]);
+  }, [handleUserJoined, handleUserLeft, handleUserPublished, handleStreamMessage, appID, channelId]);
 
   return (
     <div className="App">
