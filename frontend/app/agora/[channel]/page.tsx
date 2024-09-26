@@ -66,23 +66,23 @@ const App: React.FC = () => {
     redirect('/');
   }
 
-  const toggleMute = useCallback(() => {
+  const toggleMute = useCallback(async () => {
     if (localTracks[0]) {
       if (isMuted) {
-        localTracks[0].setMuted(false);
+        await localTracks[0].setEnabled(true);
       } else {
-        localTracks[0].setMuted(true);
+        await localTracks[0].setEnabled(false);
       }
       setIsMuted(!isMuted);
     }
   }, [localTracks, isMuted]);
 
-  const toggleCamera = useCallback(() => {
+  const toggleCamera = useCallback(async () => {
     if (localTracks[1]) {
       if (isCameraOn) {
-        localTracks[1].setMuted(true);
+        await localTracks[1].setEnabled(false);
       } else {
-        localTracks[1].setMuted(false);
+        await localTracks[1].setEnabled(true);
       }
       setIsCameraOn(!isCameraOn);
     }
