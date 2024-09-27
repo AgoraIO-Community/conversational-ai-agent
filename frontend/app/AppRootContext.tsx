@@ -1,48 +1,47 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState } from 'react';
 import { UID } from 'agora-rtc-sdk-ng';
 
 export interface AppRootContextInterface {
   appId: string;
-  setAppId: React.Dispatch<React.SetStateAction<string>>;
   channelId: string;
-  setChannelId: React.Dispatch<React.SetStateAction<string>>;
   localUserName: string;
   setUserName: React.Dispatch<React.SetStateAction<string>>;
   localUserId: UID;
   serLocalUserId: React.Dispatch<React.SetStateAction<UID>>;
+  token: string;
+  setToken: (token: string) => void;
 }
 
 export const AppRootContext = createContext<AppRootContextInterface>({
-  appId: "",
-  channelId: "",
-  localUserName: "",
-  localUserId: "",
+  appId: '',
+  channelId: '',
+  localUserName: '',
+  localUserId: '',
   serLocalUserId: () => {},
-  setAppId: () => {},
-  setChannelId: () => {},
   setUserName: () => {},
+  token: '',
+  setToken: () => {},
 });
 
-export const AppRootProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => { // Added return type
-  const [appId, setAppId] = useState<string>("aab8b8f5a8cd4469a63042fcfafe7063"); 
-  const [channelId, setChannelId] = useState<string>("realtimekit_agora"); 
-  const [localUserName, setUserName] = useState<string>("8800"); 
-  const [localUserId, serLocalUserId] = useState<UID>(""); 
+export const AppRootProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [localUserName, setUserName] = React.useState<string>('0');
+  const [localUserId, serLocalUserId] = React.useState<UID>('0');
+  const [token, setToken] = React.useState<string>('');
+
+  const value = {
+    appId: process.env.NEXT_PUBLIC_AGORA_APP_ID!,
+    channelId: process.env.NEXT_PUBLIC_AGORA_CHANNEL_NAME!,
+    localUserName,
+    setUserName,
+    localUserId,
+    serLocalUserId,
+    token,
+    setToken,
+  };
 
   return (
-    <AppRootContext.Provider         
-      value={{
-        appId,
-        setAppId,
-        channelId,
-        setChannelId,
-        localUserName,
-        setUserName,
-        localUserId,
-        serLocalUserId
-      }}
-    >
-      {children}
-    </AppRootContext.Provider>
+    <AppRootContext.Provider value={value}>{children}</AppRootContext.Provider>
   );
-}
+};
