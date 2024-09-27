@@ -267,7 +267,7 @@ const App: React.FC = () => {
             id="localUser"
           >
             {!isCameraOn && <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center"><AvatarUser /></div>}
-            { maxVolumeUser === localUserId &&  <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>}
+            { maxVolumeUser === localUserId && !isMuted && <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>}
             <Userbadge text={'Local User'}/>
           </Card>
           <div className="mt-auto  flex w-[300px] py-2 border-t  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
