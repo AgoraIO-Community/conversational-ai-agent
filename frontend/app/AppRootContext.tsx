@@ -8,7 +8,7 @@ export interface AppRootContextInterface {
   localUserName: string;
   setUserName: React.Dispatch<React.SetStateAction<string>>;
   localUserId: UID;
-  serLocalUserId: React.Dispatch<React.SetStateAction<UID>>;
+  setLocalUserId: React.Dispatch<React.SetStateAction<UID>>;
   token: string;
   setToken: (token: string) => void;
 }
@@ -19,7 +19,7 @@ export const AppRootContext = createContext<AppRootContextInterface>({
   setChannelId: () => {},
   localUserName: '',
   localUserId: '',
-  serLocalUserId: () => {},
+  setLocalUserId: () => {},
   setUserName: () => {},
   token: '',
   setToken: () => {},
@@ -29,7 +29,7 @@ export const AppRootProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [localUserName, setUserName] = React.useState<string>('0');
-  const [localUserId, serLocalUserId] = React.useState<UID>('0');
+  const [localUserId, setLocalUserId] = React.useState<UID>('0');
   const [token, setToken] = React.useState<string>('');
   const [channelId, setChannelId] = React.useState<string>('');
 
@@ -56,7 +56,7 @@ export const AppRootProvider: React.FC<{ children: React.ReactNode }> = ({
     localUserName,
     setUserName,
     localUserId,
-    serLocalUserId,
+    setLocalUserId,
     token,
     setToken,
   };

@@ -26,7 +26,9 @@ export default function LandingPage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetchToken();
+    if(appId && channelId){
+      fetchToken();
+    }
   }, [appId, channelId]);
 
   const fetchToken = async () => {
