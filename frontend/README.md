@@ -26,7 +26,7 @@ cp .env.example .env
 
    - `NEXT_PUBLIC_AGORA_APP_ID`: Your Agora App ID
    - `NEXT_PUBLIC_AGORA_APP_CERTIFICATE`: Your Agora App Certificate
-   - `NEXT_PUBLIC_AGORA_CHANNEL_NAME`: The channel name for Agora (default is 'realtimekit_agora')
+   - `NEXT_PUBLIC_AGORA_AI_AGENT_URL`: The url for your Ai Agent backend server
 
 ## Running the Development Server
 

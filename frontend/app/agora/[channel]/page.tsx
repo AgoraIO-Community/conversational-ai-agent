@@ -17,10 +17,19 @@ import { AppRootContext } from '../../AppRootContext';
 import { Badge } from '@/components/ui/badge';
 import { redirect } from 'next/navigation';
 import { Card } from '@/components/ui/card';
-import { Mic, MicOff, Camera, CameraOff, Phone, PhoneOff, Loader2, Loader } from 'lucide-react';
+import {
+  Mic,
+  MicOff,
+  Camera,
+  CameraOff,
+  Phone,
+  PhoneOff,
+  Loader2,
+  Loader,
+} from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
 const AvatarUser = ({ imageUrl }: { imageUrl: string }) => {
@@ -71,8 +80,9 @@ const App: React.FC = () => {
   const [isCallActive, setIsCallActive] = useState(true);
   const [maxVolumeUser, setMaxVolumeUser] = useState<UID>('');
   const router = useRouter();
-  const [connectionState, setConnectionState] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
-
+  const [connectionState, setConnectionState] = useState<
+    'disconnected' | 'connecting' | 'connected'
+  >('disconnected');
 
   if (!appID || !channelId) {
     redirect('/');
@@ -142,9 +152,11 @@ const App: React.FC = () => {
       if (mediaType === 'video' && user.videoTrack) {
         console.log('subscribe video success');
         if (remoteUsersContainerRef.current) {
-          user.videoTrack.play(remoteUsersContainerRef.current, { fit: 'cover' });
+          user.videoTrack.play(remoteUsersContainerRef.current, {
+            fit: 'cover',
+          });
         } else {
-          console.error("Remote users container not found");
+          console.error('Remote users container not found');
         }
       }
       if (mediaType === 'audio' && user.audioTrack) {
@@ -183,12 +195,10 @@ const App: React.FC = () => {
     []
   );
 
-
-
   const connectToAIAgent = async (action: 'start' | 'stop'): Promise<void> => {
     const apiUrl = `${process.env.NEXT_PUBLIC_AGORA_AI_AGENT_URL}/${action}`;
     const requestBody = {
-      cname: "realtimekit_agora"
+      cname: channelId,
     };
 
     try {
@@ -207,12 +217,14 @@ const App: React.FC = () => {
 
       const data = await response.json();
       setConnectionState(action === 'start' ? 'connected' : 'disconnected');
-      console.log(`AI agent ${action === 'start' ? 'connected' : 'disconnected'}`, data);
+      console.log(
+        `AI agent ${action === 'start' ? 'connected' : 'disconnected'}`,
+        data
+      );
     } catch (error) {
       console.error(`Failed to ${action} AI agent connection:`, error);
       throw error;
     }
-
   };
 
   const handleConnectionToggle = useCallback(async () => {
@@ -275,12 +287,11 @@ const App: React.FC = () => {
         //   cameraTrack.play(localUserContainerRef.current, { fit: 'cover' });
         // }
 
-        let localUid = ""
+        let localUid = '';
         try {
           await client.join(appID, channelId, token, null);
         } catch (error) {
-          console.log(`Unable to join channel - error - ${error}`)
-
+          console.log(`Unable to join channel - error - ${error}`);
         }
         console.log(
           `Local user joined channel successfully - userId - ${localUid} `
@@ -293,8 +304,6 @@ const App: React.FC = () => {
         console.log('Tracks published successfully');
 
         client.enableAudioVolumeIndicator();
-
-
       } catch (error) {
         console.error('Error during initialization:', error);
         hasAttemptedJoin.current = false; // Reset if join fails, allowing for retry
@@ -336,14 +345,20 @@ const App: React.FC = () => {
               </p>
             </div>
             <div>
-
               <Button
                 onClick={handleConnectionToggle}
-
                 className={`
                   transition-colors
-                  ${connectionState === 'connected' ? 'bg-red-500 hover:bg-red-600' : ''}
-                  ${connectionState === 'disconnected' ? 'bg-green-500 hover:bg-green-600' : ''}
+                  ${
+                    connectionState === 'connected'
+                      ? 'bg-red-500 hover:bg-red-600'
+                      : ''
+                  }
+                  ${
+                    connectionState === 'disconnected'
+                      ? 'bg-green-500 hover:bg-green-600'
+                      : ''
+                  }
                 `}
                 disabled={connectionState === 'connecting'}
               >
@@ -367,14 +382,16 @@ const App: React.FC = () => {
       </div>
 
       <div
-        className={`grid gap-10 ${users.length ? 'grid-cols-2' : 'grid-cols-1'
-          } justify-center h-1/2 max-w-screen-lg m-auto`}
+        className={`grid gap-10 ${
+          users.length ? 'grid-cols-2' : 'grid-cols-1'
+        } justify-center h-1/2 max-w-screen-lg m-auto`}
       >
         <div>
           <Card
             ref={localUserContainerRef}
-            className={`h-full ${users.length ? 'w-full' : 'w-[600px] m-auto'
-              } aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative mb-5`}
+            className={`h-full ${
+              users.length ? 'w-full' : 'w-[600px] m-auto'
+            } aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative mb-5`}
             id="localUser"
           >
             {!isCameraOn && (
@@ -425,7 +442,6 @@ const App: React.FC = () => {
           </div>
         </div>
 
-
         {users.length > 0 && (
           <div>
             <Card
@@ -445,8 +461,6 @@ const App: React.FC = () => {
             </Card>
           </div>
         )}
-
-
       </div>
     </div>
   );

@@ -1,9 +1,10 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { UID } from 'agora-rtc-sdk-ng';
 
 export interface AppRootContextInterface {
   appId: string;
   channelId: string;
+  setChannelId: React.Dispatch<React.SetStateAction<string>>;
   localUserName: string;
   setUserName: React.Dispatch<React.SetStateAction<string>>;
   localUserId: UID;
@@ -15,6 +16,7 @@ export interface AppRootContextInterface {
 export const AppRootContext = createContext<AppRootContextInterface>({
   appId: '',
   channelId: '',
+  setChannelId: () => {},
   localUserName: '',
   localUserId: '',
   serLocalUserId: () => {},
@@ -29,10 +31,28 @@ export const AppRootProvider: React.FC<{ children: React.ReactNode }> = ({
   const [localUserName, setUserName] = React.useState<string>('0');
   const [localUserId, serLocalUserId] = React.useState<UID>('0');
   const [token, setToken] = React.useState<string>('');
+  const [channelId, setChannelId] = React.useState<string>('');
+
+  useEffect(() => {
+    const generateChannelId = () => {
+      const characters =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      for (let i = 0; i < 16; i++) {
+        result += characters.charAt(
+          Math.floor(Math.random() * characters.length)
+        );
+      }
+      return result;
+    };
+
+    setChannelId(generateChannelId());
+  }, []);
 
   const value = {
     appId: process.env.NEXT_PUBLIC_AGORA_APP_ID!,
-    channelId: process.env.NEXT_PUBLIC_AGORA_CHANNEL_NAME!,
+    channelId,
+    setChannelId,
     localUserName,
     setUserName,
     localUserId,
