@@ -23,10 +23,10 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 
-const AvatarUser = () => {
+const AvatarUser = ({ imageUrl }: { imageUrl: string }) => {
   return (
     <Avatar style={{ zIndex: 1, width: '120px', height: '120px' }}>
-      <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+      <AvatarImage src={imageUrl} alt="@shadcn" />
       <AvatarFallback></AvatarFallback>
     </Avatar>
   );
@@ -57,8 +57,8 @@ const App: React.FC = () => {
   const hasAttemptedJoin = useRef(false);
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
   const [localTracks, setLocalTracks] = useState<
-    [IMicrophoneAudioTrack | null, ICameraVideoTrack | null]
-  >([null, null]);
+    [IMicrophoneAudioTrack | null,]
+  >([null]);
   const [streamMessages, setStreamMessages] = useState<
     { uid: string; message: string }[]
   >([]);
@@ -67,7 +67,7 @@ const App: React.FC = () => {
   const remoteUsersContainerRef = useRef<HTMLDivElement>(null);
   const [hasUserJoined, setHasUserJoined] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [isCameraOn, setIsCameraOn] = useState(false);
   const [isCallActive, setIsCallActive] = useState(true);
   const [maxVolumeUser, setMaxVolumeUser] = useState<UID>('');
   const router = useRouter();
@@ -89,16 +89,16 @@ const App: React.FC = () => {
     }
   }, [localTracks, isMuted]);
 
-  const toggleCamera = useCallback(async () => {
-    if (localTracks[1]) {
-      if (isCameraOn) {
-        await localTracks[1].setEnabled(false);
-      } else {
-        await localTracks[1].setEnabled(true);
-      }
-      setIsCameraOn(!isCameraOn);
-    }
-  }, [localTracks, isCameraOn]);
+  // const toggleCamera = useCallback(async () => {
+  //   if (localTracks[1]) {
+  //     if (isCameraOn) {
+  //     await localTracks[1].setEnabled(false);
+  //     } else {
+  //       await localTracks[1].setEnabled(true);
+  //     }
+  //     setIsCameraOn(!isCameraOn);
+  //   }
+  // }, [localTracks, isCameraOn]);
 
   const toggleCall = useCallback(async () => {
     if (clientRef.current) {
@@ -247,9 +247,9 @@ const App: React.FC = () => {
 
     const init = async () => {
       try {
-        const [microphoneTrack, cameraTrack] =
-          await AgoraRTC.createMicrophoneAndCameraTracks();
-
+        // const [microphoneTrack, cameraTrack] =
+        //   await AgoraRTC.createMicrophoneAndCameraTracks();
+        const microphoneTrack = await AgoraRTC.createMicrophoneAudioTrack();
         client.on('user-joined', handleUserJoined);
         client.on('user-left', handleUserLeft);
         client.on('user-published', handleUserPublished);
@@ -268,11 +268,12 @@ const App: React.FC = () => {
           setMaxVolumeUser(uid);
         });
 
-        setLocalTracks([microphoneTrack, cameraTrack]);
+        // setLocalTracks([microphoneTrack, cameraTrack]);
+        setLocalTracks([microphoneTrack]);
 
-        if (localUserContainerRef.current && cameraTrack) {
-          cameraTrack.play(localUserContainerRef.current, { fit: 'cover' });
-        }
+        // if (localUserContainerRef.current && cameraTrack) {
+        //   cameraTrack.play(localUserContainerRef.current, { fit: 'cover' });
+        // }
 
         let localUid = ""
         try {
@@ -287,7 +288,8 @@ const App: React.FC = () => {
         serLocalUserId(localUid);
         isLocalUserJoined.current = true;
 
-        await client.publish([microphoneTrack, cameraTrack]);
+        // await client.publish([microphoneTrack, cameraTrack]);
+        await client.publish([microphoneTrack]);
         console.log('Tracks published successfully');
 
         client.enableAudioVolumeIndicator();
@@ -377,7 +379,7 @@ const App: React.FC = () => {
           >
             {!isCameraOn && (
               <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
-                <AvatarUser />
+                <AvatarUser imageUrl='https://github.com/shadcn.png' />
               </div>
             )}
             {maxVolumeUser === localUserId && (
@@ -385,19 +387,20 @@ const App: React.FC = () => {
             )}
             <Userbadge text={'Local User'} />
           </Card>
-          <div className="mt-auto  flex w-[300px] py-2 border-t  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
-            <button
-              onClick={toggleMute}
-              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
-            >
-              {isMuted ? (
-                <MicOff className="text-red-500 w-6 h-6" />
-              ) : (
-                <Mic className="text-white-300 w-6 h-6" />
-              )}
-            </button>
+          <div className="mt-auto  flex w-[300px] py-2  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
+            <div className="flex space-x-4  border-t py-2 px-2">
+              <button
+                onClick={toggleMute}
+                className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
+              >
+                {isMuted ? (
+                  <MicOff className="text-red-500 w-6 h-6" />
+                ) : (
+                  <Mic className="text-white-300 w-6 h-6" />
+                )}
+              </button>
 
-            <button
+              {/* <button
               onClick={toggleCamera}
               className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors"
             >
@@ -406,18 +409,19 @@ const App: React.FC = () => {
               ) : (
                 <CameraOff className="text-red-500 w-6 h-6" />
               )}
-            </button>
+            </button> */}
 
-            <button
-              onClick={toggleCall}
-              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
-            >
-              {isCallActive ? (
-                <PhoneOff className="text-red-500 w-6 h-6" />
-              ) : (
-                <Phone className="text-white-300 w-6 h-6" />
-              )}
-            </button>
+              <button
+                onClick={toggleCall}
+                className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
+              >
+                {isCallActive ? (
+                  <PhoneOff className="text-red-500 w-6 h-6" />
+                ) : (
+                  <Phone className="text-white-300 w-6 h-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -429,6 +433,11 @@ const App: React.FC = () => {
               className="w-full h-full aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
               id={`remote-user-${users[0].uid}`}
             >
+              {!users[0].videoTrack && (
+                <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
+                  <AvatarUser imageUrl={'https://img.freepik.com/premium-vector/ai-logo-template-vector-with-white-background_1023984-15077.jpg?w=360'} />
+                </div>
+              )}
               {maxVolumeUser === users[0].uid && (
                 <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
               )}
