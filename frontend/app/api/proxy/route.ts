@@ -1,22 +1,30 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { action, channel_name } = req.body;
+import { NextRequest, NextResponse } from 'next/server';
 
-  const apiUrl = `${process.env.NEXT_PUBLIC_AGORA_AI_AGENT_URL}/${action}`;
+const API_BASE_URL = process.env.AGORA_AI_AGENT_URL || "http://47.251.115.141:8080";
 
+export async function POST(request: NextRequest) {
   try {
-    const response = await fetch(apiUrl, {
+    const body = await request.json();
+    console.log({body})
+    const {action, channel_name} = body
+
+    const response = await fetch(`${API_BASE_URL}/${action}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ channel_name }),
+      body: JSON.stringify(body),
     });
 
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`);
+    }
+
     const data = await response.json();
-    res.status(response.status).json(data);
+    return NextResponse.json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to connect to AI agent' });
+    console.error('Proxy error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

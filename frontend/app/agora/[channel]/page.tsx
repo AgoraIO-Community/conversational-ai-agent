@@ -202,7 +202,7 @@ const App: React.FC = () => {
       action, 
       channel_name: channelId,
     };
-
+    console.log({requestBody})
     try {
       setConnectionState('connecting');
       const response = await fetch(apiUrl, {
