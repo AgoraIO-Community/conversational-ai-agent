@@ -201,6 +201,7 @@ const App: React.FC = () => {
     const requestBody = {
       action, 
       channel_name: channelId,
+      uid: "123" // hard coded for ai agent
     };
     console.log({requestBody})
     try {
