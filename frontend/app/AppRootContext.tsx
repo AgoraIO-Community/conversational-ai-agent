@@ -17,20 +17,20 @@ export const AppRootContext = createContext<AppRootContextInterface>({
   channelId: "",
   localUserName: "",
   localUserId: "",
-  serLocalUserId: () => {},
-  setAppId: () => {},
-  setChannelId: () => {},
-  setUserName: () => {},
+  serLocalUserId: () => { },
+  setAppId: () => { },
+  setChannelId: () => { },
+  setUserName: () => { },
 });
 
 export const AppRootProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => { // Added return type
-  const [appId, setAppId] = useState<string>("aab8b8f5a8cd4469a63042fcfafe7063"); 
-  const [channelId, setChannelId] = useState<string>("realtimekit_agora"); 
-  const [localUserName, setUserName] = useState<string>("8800"); 
-  const [localUserId, serLocalUserId] = useState<UID>(""); 
+  const [appId, setAppId] = useState<string>("392bdd4cf5da44db84328a29d247b405");
+  const [channelId, setChannelId] = useState<string>("test");
+  const [localUserName, setUserName] = useState<string>("8800");
+  const [localUserId, serLocalUserId] = useState<UID>("");
 
   return (
-    <AppRootContext.Provider         
+    <AppRootContext.Provider
       value={{
         appId,
         setAppId,
