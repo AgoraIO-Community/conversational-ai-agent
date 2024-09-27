@@ -387,19 +387,20 @@ const App: React.FC = () => {
             )}
             <Userbadge text={'Local User'} />
           </Card>
-          <div className="mt-auto  flex w-[300px] py-2 border-t  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
-            <button
-              onClick={toggleMute}
-              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
-            >
-              {isMuted ? (
-                <MicOff className="text-red-500 w-6 h-6" />
-              ) : (
-                <Mic className="text-white-300 w-6 h-6" />
-              )}
-            </button>
+          <div className="mt-auto  flex w-[300px] py-2  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
+            <div className="flex space-x-4  border-t py-2 px-2">
+              <button
+                onClick={toggleMute}
+                className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
+              >
+                {isMuted ? (
+                  <MicOff className="text-red-500 w-6 h-6" />
+                ) : (
+                  <Mic className="text-white-300 w-6 h-6" />
+                )}
+              </button>
 
-            {/* <button
+              {/* <button
               onClick={toggleCamera}
               className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors"
             >
@@ -410,16 +411,17 @@ const App: React.FC = () => {
               )}
             </button> */}
 
-            <button
-              onClick={toggleCall}
-              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
-            >
-              {isCallActive ? (
-                <PhoneOff className="text-red-500 w-6 h-6" />
-              ) : (
-                <Phone className="text-white-300 w-6 h-6" />
-              )}
-            </button>
+              <button
+                onClick={toggleCall}
+                className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
+              >
+                {isCallActive ? (
+                  <PhoneOff className="text-red-500 w-6 h-6" />
+                ) : (
+                  <Phone className="text-white-300 w-6 h-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
