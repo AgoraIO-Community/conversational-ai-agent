@@ -32,6 +32,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
+const AI_AGENT_UID = 123;
 const AvatarUser = ({ imageUrl }: { imageUrl: string }) => {
   return (
     <Avatar style={{ zIndex: 1, width: '120px', height: '120px' }}>
@@ -59,7 +60,7 @@ const App: React.FC = () => {
     appId: appID,
     channelId,
     localUserId,
-    serLocalUserId,
+    setLocalUserId,
     token,
   } = useContext(AppRootContext);
   const isLocalUserJoined = useRef(false);
@@ -201,7 +202,7 @@ const App: React.FC = () => {
     const requestBody = {
       action, 
       channel_name: channelId,
-      uid: "123" // hard coded for ai agent
+      uid: AI_AGENT_UID
     };
     console.log({requestBody})
     try {
@@ -290,16 +291,18 @@ const App: React.FC = () => {
         //   cameraTrack.play(localUserContainerRef.current, { fit: 'cover' });
         // }
 
-        let localUid = '';
+        let localUid;
         try {
-          await client.join(appID, channelId, token, null);
+          localUid = await client.join(appID, channelId, token, null);
         } catch (error) {
           console.log(`Unable to join channel - error - ${error}`);
         }
         console.log(
           `Local user joined channel successfully - userId - ${localUid} `
         );
-        serLocalUserId(localUid);
+        if(localUid){
+          setLocalUserId(localUid);
+        }
         isLocalUserJoined.current = true;
 
         // await client.publish([microphoneTrack, cameraTrack]);
@@ -368,7 +371,7 @@ const App: React.FC = () => {
                 {connectionState === 'connecting' && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {connectionState === 'disconnected' && 'Connect'}
+                {connectionState === 'disconnected' && 'Connect Agent'}
 
                 {connectionState === 'connected' && 'Disconnect'}
               </Button>
@@ -460,7 +463,7 @@ const App: React.FC = () => {
               {maxVolumeUser === users[0].uid && (
                 <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
               )}
-              <Userbadge text={users[0].uid} />
+              <Userbadge text={users[0].uid === AI_AGENT_UID ? "AI Agent": users[0].uid} />
             </Card>
           </div>
         )}
