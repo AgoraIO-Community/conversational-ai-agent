@@ -23,6 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAudioVisualization } from '@/hooks/useAudioVisualization';
 
 const AvatarUser = () => {
   return (
@@ -75,6 +76,7 @@ const App: React.FC = () => {
   const [connectionState, setConnectionState] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
   const [availableMicrophones, setAvailableMicrophones] = useState<MediaDeviceInfo[]>([]);
   const [selectedMicrophone, setSelectedMicrophone] = useState<string | null>(null);
+  const { waveformData, startVisualization, stopVisualization } = useAudioVisualization();
 
 
   if (!appID || !channelId) {
@@ -342,6 +344,16 @@ const App: React.FC = () => {
     }
   }, [selectedMicrophone, localTracks]);
 
+  useEffect(() => {
+    if (localTracks[0]) {
+      const audioTrack = localTracks[0];
+      startVisualization(audioTrack.getMediaStreamTrack());
+    }
+    return () => {
+      stopVisualization();
+    };
+  }, [localTracks, startVisualization, stopVisualization]);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col justify-center items-center">
@@ -480,7 +492,23 @@ const App: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
+          <div className="mt-4">
+            <div className="h-20 bg-gray-800 rounded-md overflow-hidden">
+              {waveformData.map((value, index) => (
+                <div
+                  key={index}
+                  className="inline-block w-1 bg-white"
+                  style={{
+                    height: `${value * 100}%`,
+                    marginRight: '1px',
+                  }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
+
+
       </div>
     </div>
   );
