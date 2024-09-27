@@ -196,11 +196,14 @@ const App: React.FC = () => {
   );
 
   const connectToAIAgent = async (action: 'start_agent' | 'stop_agent'): Promise<void> => {
-    const apiUrl = `${process.env.NEXT_PUBLIC_AGORA_AI_AGENT_URL}/${action}`;
-    const requestBody = {
-      channel_name: channelId,
-    };
 
+    const apiUrl = '/api/proxy'; 
+    const requestBody = {
+      action, 
+      channel_name: channelId,
+      uid: "123" // hard coded for ai agent
+    };
+    console.log({requestBody})
     try {
       setConnectionState('connecting');
       const response = await fetch(apiUrl, {
@@ -210,7 +213,7 @@ const App: React.FC = () => {
         },
         body: JSON.stringify(requestBody),
       });
-
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
