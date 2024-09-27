@@ -203,7 +203,7 @@ const App: React.FC = () => {
 
   const handleVolumeIndicator = useCallback((volumes: { level: number; uid: number | string }[]) => {
     const currentTime = Date.now();
-
+    console.log('on volume indicator', volumes)
     volumes.forEach(({ level, uid }) => {
       if (!volumeHistoryRef.current[uid]) {
         volumeHistoryRef.current[uid] = [];
