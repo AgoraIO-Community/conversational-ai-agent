@@ -42,36 +42,6 @@ const Userbadge = ({ text }: { text: number | string }) => {
   );
 };
 
-const RemoteUser: React.FC<{
-  user: IAgoraRTCRemoteUser;
-  hasUserJoined: boolean;
-  isActiveSpeaker: boolean;
-}> = ({ user, hasUserJoined, isActiveSpeaker }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (user.videoTrack && containerRef.current) {
-      user.videoTrack.play(containerRef.current);
-    }
-    return () => {
-      user.videoTrack?.stop();
-    };
-  }, [hasUserJoined]);
-
-  return (
-    <Card
-      ref={containerRef}
-      className="w-full h-full aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
-      id={`remote-user-${user.uid}`}
-    >
-      {isActiveSpeaker && (
-        <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
-      )}
-      <Userbadge text={user.uid} />
-    </Card>
-  );
-};
-
 // import './App.css';
 
 const App: React.FC = () => {
@@ -168,11 +138,11 @@ const App: React.FC = () => {
 
       if (mediaType === 'video' && user.videoTrack) {
         console.log('subscribe video success');
-        // if (remoteUsersContainerRef.current) {
-        setHasUserJoined(true);
-        // } else {
-        //   console.error("Remote users container not found");
-        // }
+        if (remoteUsersContainerRef.current) {
+          user.videoTrack.play(remoteUsersContainerRef.current, { fit: 'cover' });
+        } else {
+          console.error("Remote users container not found");
+        }
       }
       if (mediaType === 'audio' && user.audioTrack) {
         console.log('subscribe audio success');
@@ -222,29 +192,6 @@ const App: React.FC = () => {
       try {
         const [microphoneTrack, cameraTrack] =
           await AgoraRTC.createMicrophoneAndCameraTracks();
-        setLocalTracks([microphoneTrack, cameraTrack]);
-
-        if (localUserContainerRef.current && cameraTrack) {
-          cameraTrack.play(localUserContainerRef.current, { fit: 'cover' });
-        }
-
-        let localUid = "" 
-        try{
-          await client.join(appID, channelId, token, null);
-        }catch(error){
-          console.log(`Unable to join channel - error - ${error}`)
-
-        }
-        console.log(
-          `Local user joined channel successfully - userId - ${localUid} `
-        );
-        serLocalUserId(localUid);
-        isLocalUserJoined.current = true;
-
-        await client.publish([microphoneTrack, cameraTrack]);
-        console.log('Tracks published successfully');
-
-        client.enableAudioVolumeIndicator();
 
         client.on('user-joined', handleUserJoined);
         client.on('user-left', handleUserLeft);
@@ -263,6 +210,32 @@ const App: React.FC = () => {
           const { uid } = user;
           setMaxVolumeUser(uid);
         });
+
+        setLocalTracks([microphoneTrack, cameraTrack]);
+
+        if (localUserContainerRef.current && cameraTrack) {
+          cameraTrack.play(localUserContainerRef.current, { fit: 'cover' });
+        }
+
+        let localUid = ""
+        try {
+          await client.join(appID, channelId, token, null);
+        } catch (error) {
+          console.log(`Unable to join channel - error - ${error}`)
+
+        }
+        console.log(
+          `Local user joined channel successfully - userId - ${localUid} `
+        );
+        serLocalUserId(localUid);
+        isLocalUserJoined.current = true;
+
+        await client.publish([microphoneTrack, cameraTrack]);
+        console.log('Tracks published successfully');
+
+        client.enableAudioVolumeIndicator();
+
+
       } catch (error) {
         console.error('Error during initialization:', error);
         hasAttemptedJoin.current = false; // Reset if join fails, allowing for retry
@@ -313,16 +286,14 @@ const App: React.FC = () => {
       </div>
 
       <div
-        className={`grid gap-10 ${
-          users.length ? 'grid-cols-2' : 'grid-cols-1'
-        } justify-center h-1/2 max-w-screen-lg m-auto`}
+        className={`grid gap-10 ${users.length ? 'grid-cols-2' : 'grid-cols-1'
+          } justify-center h-1/2 max-w-screen-lg m-auto`}
       >
         <div>
           <Card
             ref={localUserContainerRef}
-            className={`h-full ${
-              users.length ? 'w-full' : 'w-[600px] m-auto'
-            } aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative mb-5`}
+            className={`h-full ${users.length ? 'w-full' : 'w-[600px] m-auto'
+              } aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative mb-5`}
             id="localUser"
           >
             {!isCameraOn && (
@@ -371,13 +342,23 @@ const App: React.FC = () => {
           </div>
         </div>
 
+
         {users.length > 0 && (
-          <RemoteUser
-            user={users[0]}
-            hasUserJoined={hasUserJoined}
-            isActiveSpeaker={maxVolumeUser === localUserId ? false : true}
-          />
+          <div>
+            <Card
+              ref={remoteUsersContainerRef}
+              className="w-full h-full aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
+              id={`remote-user-${users[0].uid}`}
+            >
+              {maxVolumeUser === users[0].uid && (
+                <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
+              )}
+              <Userbadge text={users[0].uid} />
+            </Card>
+          </div>
         )}
+
+
       </div>
     </div>
   );
