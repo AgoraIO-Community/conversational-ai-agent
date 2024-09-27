@@ -193,6 +193,24 @@ const App: React.FC = () => {
         const [microphoneTrack, cameraTrack] =
           await AgoraRTC.createMicrophoneAndCameraTracks();
 
+        client.on('user-joined', handleUserJoined);
+        client.on('user-left', handleUserLeft);
+        client.on('user-published', handleUserPublished);
+        client.on('stream-message', handleStreamMessage);
+        client.on('volume-indicator', (volume) => {
+          const user = volume.reduce((max, user) => {
+            if (user.level > max.level) {
+              return user;
+            }
+            return max;
+          }, volume[0]);
+
+          console.log(user.uid);
+
+          const { uid } = user;
+          setMaxVolumeUser(uid);
+        });
+
         setLocalTracks([microphoneTrack, cameraTrack]);
 
         if (localUserContainerRef.current && cameraTrack) {
@@ -217,23 +235,7 @@ const App: React.FC = () => {
 
         client.enableAudioVolumeIndicator();
 
-        client.on('user-joined', handleUserJoined);
-        client.on('user-left', handleUserLeft);
-        client.on('user-published', handleUserPublished);
-        client.on('stream-message', handleStreamMessage);
-        client.on('volume-indicator', (volume) => {
-          const user = volume.reduce((max, user) => {
-            if (user.level > max.level) {
-              return user;
-            }
-            return max;
-          }, volume[0]);
 
-          console.log(user.uid);
-
-          const { uid } = user;
-          setMaxVolumeUser(uid);
-        });
       } catch (error) {
         console.error('Error during initialization:', error);
         hasAttemptedJoin.current = false; // Reset if join fails, allowing for retry
@@ -348,7 +350,7 @@ const App: React.FC = () => {
               className="w-full h-full aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
               id={`remote-user-${users[0].uid}`}
             >
-              {maxVolumeUser === localUserId ? false : true && (
+              {maxVolumeUser === users[0].uid && (
                 <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
               )}
               <Userbadge text={users[0].uid} />
