@@ -17,9 +17,10 @@ import { AppRootContext } from '../../AppRootContext';
 import { Badge } from '@/components/ui/badge';
 import { redirect } from 'next/navigation';
 import { Card } from '@/components/ui/card';
-import { Mic, MicOff, Camera, CameraOff, Phone, PhoneOff } from 'lucide-react';
+import { Mic, MicOff, Camera, CameraOff, Phone, PhoneOff, Loader2, Loader } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 
 const AvatarUser = () => {
@@ -70,6 +71,8 @@ const App: React.FC = () => {
   const [isCallActive, setIsCallActive] = useState(true);
   const [maxVolumeUser, setMaxVolumeUser] = useState<UID>('');
   const router = useRouter();
+  const [connectionState, setConnectionState] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+
 
   if (!appID || !channelId) {
     redirect('/');
@@ -180,6 +183,60 @@ const App: React.FC = () => {
     []
   );
 
+
+
+  const connectToAIAgent = async (action: 'start' | 'stop'): Promise<void> => {
+    const apiUrl = `${process.env.NEXT_PUBLIC_AGORA_AI_AGENT_URL}/${action}`;
+    const requestBody = {
+      cname: "realtimekit_agora"
+    };
+
+    try {
+      setConnectionState('connecting');
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setConnectionState(action === 'start' ? 'connected' : 'disconnected');
+      console.log(`AI agent ${action === 'start' ? 'connected' : 'disconnected'}`, data);
+    } catch (error) {
+      console.error(`Failed to ${action} AI agent connection:`, error);
+      throw error;
+    }
+
+  };
+
+  const handleConnectionToggle = useCallback(async () => {
+    if (connectionState === 'disconnected') {
+      setConnectionState('connecting');
+      try {
+        await connectToAIAgent('start');
+        setConnectionState('connected');
+      } catch (error) {
+        console.error('Connection failed:', error);
+        setConnectionState('disconnected');
+      }
+    } else if (connectionState === 'connected') {
+      setConnectionState('connecting');
+      try {
+        await connectToAIAgent('stop');
+        setConnectionState('disconnected');
+      } catch (error) {
+        console.error('Disconnection failed:', error);
+        setConnectionState('connected');
+      }
+    }
+  }, [connectionState]);
+
   useEffect(() => {
     if (hasAttemptedJoin.current) return;
     hasAttemptedJoin.current = true;
@@ -267,13 +324,35 @@ const App: React.FC = () => {
     <div className="flex flex-col justify-center items-center">
       <div className="self-center w-1/2 my-10">
         <div>
-          <div className="space-y-1">
-            <h4 className="text-lg font-medium leading-none">
-              Agora Conversational AI
-            </h4>
-            <p className="text-sm text-muted-foreground">
-              Participants: {users.length + 1}
-            </p>
+          <div className="space-y-1 flex flex-row justify-between">
+            <div>
+              <h4 className="text-lg font-medium leading-none">
+                Agora Conversational AI
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Participants: {users.length + 1}
+              </p>
+            </div>
+            <div>
+
+              <Button
+                onClick={handleConnectionToggle}
+
+                className={`
+                  transition-colors
+                  ${connectionState === 'connected' ? 'bg-red-500 hover:bg-red-600' : ''}
+                  ${connectionState === 'disconnected' ? 'bg-green-500 hover:bg-green-600' : ''}
+                `}
+                disabled={connectionState === 'connecting'}
+              >
+                {connectionState === 'connecting' && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {connectionState === 'disconnected' && 'Connect'}
+
+                {connectionState === 'connected' && 'Disconnect'}
+              </Button>
+            </div>
           </div>
           <Separator className="my-4" />
         </div>
