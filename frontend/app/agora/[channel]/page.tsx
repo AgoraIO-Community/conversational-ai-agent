@@ -23,10 +23,10 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 
-const AvatarUser = () => {
+const AvatarUser = ({ imageUrl }: { imageUrl: string }) => {
   return (
     <Avatar style={{ zIndex: 1, width: '120px', height: '120px' }}>
-      <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+      <AvatarImage src={imageUrl} alt="@shadcn" />
       <AvatarFallback></AvatarFallback>
     </Avatar>
   );
@@ -379,7 +379,7 @@ const App: React.FC = () => {
           >
             {!isCameraOn && (
               <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
-                <AvatarUser />
+                <AvatarUser imageUrl='https://github.com/shadcn.png' />
               </div>
             )}
             {maxVolumeUser === localUserId && (
@@ -431,6 +431,11 @@ const App: React.FC = () => {
               className="w-full h-full aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
               id={`remote-user-${users[0].uid}`}
             >
+              {!users[0].videoTrack && (
+                <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
+                  <AvatarUser imageUrl={'https://img.freepik.com/premium-vector/ai-logo-template-vector-with-white-background_1023984-15077.jpg?w=360'} />
+                </div>
+              )}
               {maxVolumeUser === users[0].uid && (
                 <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
               )}
