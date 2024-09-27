@@ -57,8 +57,8 @@ const App: React.FC = () => {
   const hasAttemptedJoin = useRef(false);
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
   const [localTracks, setLocalTracks] = useState<
-    [IMicrophoneAudioTrack | null, ICameraVideoTrack | null]
-  >([null, null]);
+    [IMicrophoneAudioTrack | null,]
+  >([null]);
   const [streamMessages, setStreamMessages] = useState<
     { uid: string; message: string }[]
   >([]);
@@ -67,7 +67,7 @@ const App: React.FC = () => {
   const remoteUsersContainerRef = useRef<HTMLDivElement>(null);
   const [hasUserJoined, setHasUserJoined] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [isCameraOn, setIsCameraOn] = useState(false);
   const [isCallActive, setIsCallActive] = useState(true);
   const [maxVolumeUser, setMaxVolumeUser] = useState<UID>('');
   const router = useRouter();
@@ -89,16 +89,16 @@ const App: React.FC = () => {
     }
   }, [localTracks, isMuted]);
 
-  const toggleCamera = useCallback(async () => {
-    if (localTracks[1]) {
-      if (isCameraOn) {
-        await localTracks[1].setEnabled(false);
-      } else {
-        await localTracks[1].setEnabled(true);
-      }
-      setIsCameraOn(!isCameraOn);
-    }
-  }, [localTracks, isCameraOn]);
+  // const toggleCamera = useCallback(async () => {
+  //   if (localTracks[1]) {
+  //     if (isCameraOn) {
+  //     await localTracks[1].setEnabled(false);
+  //     } else {
+  //       await localTracks[1].setEnabled(true);
+  //     }
+  //     setIsCameraOn(!isCameraOn);
+  //   }
+  // }, [localTracks, isCameraOn]);
 
   const toggleCall = useCallback(async () => {
     if (clientRef.current) {
@@ -247,9 +247,9 @@ const App: React.FC = () => {
 
     const init = async () => {
       try {
-        const [microphoneTrack, cameraTrack] =
-          await AgoraRTC.createMicrophoneAndCameraTracks();
-
+        // const [microphoneTrack, cameraTrack] =
+        //   await AgoraRTC.createMicrophoneAndCameraTracks();
+        const microphoneTrack = await AgoraRTC.createMicrophoneAudioTrack();
         client.on('user-joined', handleUserJoined);
         client.on('user-left', handleUserLeft);
         client.on('user-published', handleUserPublished);
@@ -268,11 +268,12 @@ const App: React.FC = () => {
           setMaxVolumeUser(uid);
         });
 
-        setLocalTracks([microphoneTrack, cameraTrack]);
+        // setLocalTracks([microphoneTrack, cameraTrack]);
+        setLocalTracks([microphoneTrack]);
 
-        if (localUserContainerRef.current && cameraTrack) {
-          cameraTrack.play(localUserContainerRef.current, { fit: 'cover' });
-        }
+        // if (localUserContainerRef.current && cameraTrack) {
+        //   cameraTrack.play(localUserContainerRef.current, { fit: 'cover' });
+        // }
 
         let localUid = ""
         try {
@@ -287,7 +288,8 @@ const App: React.FC = () => {
         serLocalUserId(localUid);
         isLocalUserJoined.current = true;
 
-        await client.publish([microphoneTrack, cameraTrack]);
+        // await client.publish([microphoneTrack, cameraTrack]);
+        await client.publish([microphoneTrack]);
         console.log('Tracks published successfully');
 
         client.enableAudioVolumeIndicator();
@@ -397,7 +399,7 @@ const App: React.FC = () => {
               )}
             </button>
 
-            <button
+            {/* <button
               onClick={toggleCamera}
               className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors"
             >
@@ -406,7 +408,7 @@ const App: React.FC = () => {
               ) : (
                 <CameraOff className="text-red-500 w-6 h-6" />
               )}
-            </button>
+            </button> */}
 
             <button
               onClick={toggleCall}
