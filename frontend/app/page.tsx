@@ -19,7 +19,7 @@ import { AppRootContext } from './AppRootContext';
 
 export default function LandingPage() {
   const contextValues = useContext(AppRootContext);
-  const { appId, channelId, localUserId, serLocalUserId, token, setToken } =
+  const { appId, channelId, localUserId, setChannelId, token, setToken } =
     contextValues;
 
   const [error, setError] = useState(false);
@@ -102,7 +102,8 @@ export default function LandingPage() {
               type="text"
               placeholder="Channel ID"
               value={channelId}
-              readOnly
+              onChange={(e) => setChannelId(e.target.value)}
+              // readOnly
             />
             {/* <Input
               className="p-5 mb-5"
@@ -110,7 +111,7 @@ export default function LandingPage() {
               placeholder="User ID"
               value={localUserId}
               onChange={(e) => serLocalUserId(e.target.value)}
-            />
+            /> 
             <Input
               className="p-5 mb-5"
               type="text"
