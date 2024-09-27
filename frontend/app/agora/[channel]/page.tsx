@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const AvatarUser = () => {
   return (
@@ -72,6 +73,8 @@ const App: React.FC = () => {
   const [maxVolumeUser, setMaxVolumeUser] = useState<UID>('');
   const router = useRouter();
   const [connectionState, setConnectionState] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+  const [availableMicrophones, setAvailableMicrophones] = useState<MediaDeviceInfo[]>([]);
+  const [selectedMicrophone, setSelectedMicrophone] = useState<string | null>(null);
 
 
   if (!appID || !channelId) {
@@ -320,124 +323,158 @@ const App: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const getAvailableMicrophones = async () => {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const microphones = devices.filter(device => device.kind === 'audioinput');
+      setAvailableMicrophones(microphones);
+      if (microphones.length > 0) {
+        setSelectedMicrophone(microphones[0].deviceId);
+      }
+    };
+
+    getAvailableMicrophones();
+  }, []);
+
   return (
-    <div className="flex flex-col justify-center items-center">
-      <div className="self-center w-1/2 my-10">
-        <div>
-          <div className="space-y-1 flex flex-row justify-between">
-            <div>
-              <h4 className="text-lg font-medium leading-none">
-                Agora Conversational AI
-              </h4>
-              <p className="text-sm text-muted-foreground">
-                Participants: {users.length + 1}
-              </p>
-            </div>
-            <div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col justify-center items-center">
+        <div className="self-center w-1/2 my-10">
+          <div>
+            <div className="space-y-1 flex flex-row justify-between">
+              <div>
+                <h4 className="text-lg font-medium leading-none">
+                  Agora Conversational AI
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Participants: {users.length + 1}
+                </p>
+              </div>
+              <div>
 
-              <Button
-                onClick={handleConnectionToggle}
+                <Button
+                  onClick={handleConnectionToggle}
 
-                className={`
+                  className={`
                   transition-colors
                   ${connectionState === 'connected' ? 'bg-red-500 hover:bg-red-600' : ''}
                   ${connectionState === 'disconnected' ? 'bg-green-500 hover:bg-green-600' : ''}
                 `}
-                disabled={connectionState === 'connecting'}
-              >
-                {connectionState === 'connecting' && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                {connectionState === 'disconnected' && 'Connect'}
+                  disabled={connectionState === 'connecting'}
+                >
+                  {connectionState === 'connecting' && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {connectionState === 'disconnected' && 'Connect'}
 
-                {connectionState === 'connected' && 'Disconnect'}
-              </Button>
+                  {connectionState === 'connected' && 'Disconnect'}
+                </Button>
+              </div>
             </div>
+            <Separator className="my-4" />
           </div>
-          <Separator className="my-4" />
-        </div>
-        {/* <Card>
+          {/* <Card>
           <CardContent>
               <h1>Agora Video Call</h1>
               <p>Participants: {users.length + 1}</p>
           </CardContent>
         </Card> */}
-      </div>
-
-      <div
-        className={`grid gap-10 ${users.length ? 'grid-cols-2' : 'grid-cols-1'
-          } justify-center h-1/2 max-w-screen-lg m-auto`}
-      >
-        <div>
-          <Card
-            ref={localUserContainerRef}
-            className={`h-full ${users.length ? 'w-full' : 'w-[600px] m-auto'
-              } aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative mb-5`}
-            id="localUser"
-          >
-            {!isCameraOn && (
-              <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
-                <AvatarUser />
-              </div>
-            )}
-            {maxVolumeUser === localUserId && (
-              <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
-            )}
-            <Userbadge text={'Local User'} />
-          </Card>
-          <div className="mt-auto  flex w-[300px] py-2 border-t  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
-            <button
-              onClick={toggleMute}
-              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
-            >
-              {isMuted ? (
-                <MicOff className="text-red-500 w-6 h-6" />
-              ) : (
-                <Mic className="text-white-300 w-6 h-6" />
-              )}
-            </button>
-
-            <button
-              onClick={toggleCamera}
-              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors"
-            >
-              {isCameraOn ? (
-                <Camera className="text-white-300 w-6 h-6" />
-              ) : (
-                <CameraOff className="text-red-500 w-6 h-6" />
-              )}
-            </button>
-
-            <button
-              onClick={toggleCall}
-              className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
-            >
-              {isCallActive ? (
-                <PhoneOff className="text-red-500 w-6 h-6" />
-              ) : (
-                <Phone className="text-white-300 w-6 h-6" />
-              )}
-            </button>
-          </div>
         </div>
 
-
-        {users.length > 0 && (
+        <div
+          className={`grid gap-10 ${users.length ? 'grid-cols-2' : 'grid-cols-1'
+            } justify-center h-1/2 max-w-screen-lg m-auto`}
+        >
           <div>
             <Card
-              ref={remoteUsersContainerRef}
-              className="w-full h-full aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
-              id={`remote-user-${users[0].uid}`}
+              ref={localUserContainerRef}
+              className={`h-full ${users.length ? 'w-full' : 'w-[600px] m-auto'
+                } aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative mb-5`}
+              id="localUser"
             >
-              {maxVolumeUser === users[0].uid && (
+              {!isCameraOn && (
+                <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
+                  <AvatarUser />
+                </div>
+              )}
+              {maxVolumeUser === localUserId && (
                 <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
               )}
-              <Userbadge text={users[0].uid} />
+              <Userbadge text={'Local User'} />
             </Card>
+            <div className="mt-auto  flex w-[300px] py-2 border-t  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
+              <button
+                onClick={toggleMute}
+                className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
+              >
+                {isMuted ? (
+                  <MicOff className="text-red-500 w-6 h-6" />
+                ) : (
+                  <Mic className="text-white-300 w-6 h-6" />
+                )}
+              </button>
+
+              <button
+                onClick={toggleCamera}
+                className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors"
+              >
+                {isCameraOn ? (
+                  <Camera className="text-white-300 w-6 h-6" />
+                ) : (
+                  <CameraOff className="text-red-500 w-6 h-6" />
+                )}
+              </button>
+
+              <button
+                onClick={toggleCall}
+                className="p-3 rounded-full bg-gray-700 shadow-md hover:bg-gray-600 transition-colors "
+              >
+                {isCallActive ? (
+                  <PhoneOff className="text-red-500 w-6 h-6" />
+                ) : (
+                  <Phone className="text-white-300 w-6 h-6" />
+                )}
+              </button>
+            </div>
           </div>
-        )}
 
 
+          {users.length > 0 && (
+            <div>
+              <Card
+                ref={remoteUsersContainerRef}
+                className="w-full h-full aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative"
+                id={`remote-user-${users[0].uid}`}
+              >
+                {maxVolumeUser === users[0].uid && (
+                  <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
+                )}
+                <Userbadge text={users[0].uid} />
+              </Card>
+            </div>
+          )}
+
+
+
+        </div>
+
+      </div>
+      <div className="lg:w-1/4 mt-8 lg:mt-0">
+        <div className="border border-gray-300 p-4 rounded-lg">
+          <h2 className="text-lg font-medium mb-5">Audio Settings</h2>
+          <Select onValueChange={setSelectedMicrophone} value={selectedMicrophone || undefined}>
+            <SelectTrigger className="w-full w-[300px]">
+              <SelectValue placeholder="Select a microphone" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableMicrophones.map((mic) => (
+                <SelectItem key={mic.deviceId} value={mic.deviceId}>
+                  {mic.label || `Microphone ${mic.deviceId.slice(0, 5)}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   );
