@@ -228,7 +228,13 @@ const App: React.FC = () => {
           cameraTrack.play(localUserContainerRef.current, { fit: 'cover' });
         }
 
-        const localUid = await client.join(appID, channelId, token, null);
+        let localUid = "" 
+        try{
+          await client.join(appID, channelId, token, null);
+        }catch(error){
+          console.log(`Unable to join channel - error - ${error}`)
+
+        }
         console.log(
           `Local user joined channel successfully - userId - ${localUid} `
         );
@@ -260,6 +266,7 @@ const App: React.FC = () => {
       } catch (error) {
         console.error('Error during initialization:', error);
         hasAttemptedJoin.current = false; // Reset if join fails, allowing for retry
+        router.push('/');
       }
     };
 
