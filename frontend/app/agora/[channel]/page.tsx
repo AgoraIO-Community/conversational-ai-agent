@@ -195,10 +195,10 @@ const App: React.FC = () => {
     []
   );
 
-  const connectToAIAgent = async (action: 'start' | 'stop'): Promise<void> => {
+  const connectToAIAgent = async (action: 'start_agent' | 'stop_agent'): Promise<void> => {
     const apiUrl = `${process.env.NEXT_PUBLIC_AGORA_AI_AGENT_URL}/${action}`;
     const requestBody = {
-      cname: channelId,
+      channel_name: channelId,
     };
 
     try {
@@ -216,9 +216,9 @@ const App: React.FC = () => {
       }
 
       const data = await response.json();
-      setConnectionState(action === 'start' ? 'connected' : 'disconnected');
+      setConnectionState(action === 'start_agent' ? 'connected' : 'disconnected');
       console.log(
-        `AI agent ${action === 'start' ? 'connected' : 'disconnected'}`,
+        `AI agent ${action === 'start_agent' ? 'connected' : 'disconnected'}`,
         data
       );
     } catch (error) {
@@ -231,7 +231,7 @@ const App: React.FC = () => {
     if (connectionState === 'disconnected') {
       setConnectionState('connecting');
       try {
-        await connectToAIAgent('start');
+        await connectToAIAgent('start_agent');
         setConnectionState('connected');
       } catch (error) {
         console.error('Connection failed:', error);
@@ -240,7 +240,7 @@ const App: React.FC = () => {
     } else if (connectionState === 'connected') {
       setConnectionState('connecting');
       try {
-        await connectToAIAgent('stop');
+        await connectToAIAgent('stop_agent');
         setConnectionState('disconnected');
       } catch (error) {
         console.error('Disconnection failed:', error);
