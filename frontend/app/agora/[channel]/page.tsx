@@ -336,6 +336,12 @@ const App: React.FC = () => {
     getAvailableMicrophones();
   }, []);
 
+  useEffect(() => {
+    if (localTracks[0] && selectedMicrophone) {
+      localTracks[0].setDevice(selectedMicrophone);
+    }
+  }, [selectedMicrophone, localTracks]);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col justify-center items-center">
