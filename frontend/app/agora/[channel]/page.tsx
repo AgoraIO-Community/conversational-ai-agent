@@ -11,6 +11,7 @@ import AgoraRTC, {
   IAgoraRTCRemoteUser,
   ICameraVideoTrack,
   IMicrophoneAudioTrack,
+  IRemoteAudioTrack,
   UID,
 } from 'agora-rtc-sdk-ng';
 import { AppRootContext } from '../../AppRootContext';
@@ -32,7 +33,9 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
-const AI_AGENT_UID:UID = '123';
+
+
+const AI_AGENT_UID: UID = '123';
 const AvatarUser = ({ imageUrl }: { imageUrl: string }) => {
   return (
     <Avatar style={{ zIndex: 1, width: '120px', height: '120px' }}>
@@ -41,6 +44,110 @@ const AvatarUser = ({ imageUrl }: { imageUrl: string }) => {
     </Avatar>
   );
 };
+
+const ActiveSpeakerAnimation = ({ audioTrack, isMuted }: { audioTrack: IMicrophoneAudioTrack | IRemoteAudioTrack | null, isMuted: boolean }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationRef = useRef<number>();
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
+  const [dataArray, setDataArray] = useState<Uint8Array | null>(null);
+  const previousDataRef = useRef<Uint8Array | null>(null);
+  const frameCountRef = useRef(0);
+
+
+  useEffect(() => {
+    if (!audioTrack || isMuted) {
+      // Clean up if track is null or muted
+      if (audioContext) {
+        audioContext.close();
+        setAudioContext(null);
+        setAnalyser(null);
+        setDataArray(null);
+      }
+      return;
+    }
+
+    // Create a new AudioContext
+    const newAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    // Create an analyser node
+    const newAnalyser = newAudioContext.createAnalyser();
+    newAnalyser.fftSize = 256;
+    // Create a new Uint8Array to hold the frequency data
+    const newDataArray = new Uint8Array(newAnalyser.frequencyBinCount);
+
+    // Create a media stream source from the audio track
+    const source = newAudioContext.createMediaStreamSource(new MediaStream([audioTrack.getMediaStreamTrack()]));
+    // Connect the source to the analyser
+    source.connect(newAnalyser);
+
+    // Update state with new audio context, analyser, and data array
+    setAudioContext(newAudioContext);
+    setAnalyser(newAnalyser);
+    setDataArray(newDataArray);
+
+    return () => {
+      newAudioContext.close();
+    };
+  }, [audioTrack, isMuted]);
+
+  useEffect(() => {
+    if (!canvasRef.current || !analyser || !dataArray) return;
+
+    const canvas = canvasRef.current;
+    const canvasCtx = canvas.getContext('2d');
+    if (!canvasCtx) return;
+
+    const draw = () => {
+      if (isMuted) {
+        // Clear the canvas if muted
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+      // Request next animation frame
+      animationRef.current = requestAnimationFrame(draw);
+      // Slow down animation by only drawing every 3rd frame
+      frameCountRef.current = (frameCountRef.current + 1) % 3;
+      if (frameCountRef.current !== 0) return;
+
+      // Get frequency data
+      analyser.getByteFrequencyData(dataArray);
+
+      // Clear the canvas
+      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const barWidth = (canvas.width / analyser.frequencyBinCount) * 5;
+      let barHeight;
+      let x = 0;
+
+      // Draw frequency bars
+      for (let i = 0; i < analyser.frequencyBinCount; i++) {
+        barHeight = (dataArray[i] / 255) * canvas.height;
+
+        // Calculate hue based on frequency
+        const hue = ((i / analyser.frequencyBinCount) * 120) + 240;
+        canvasCtx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+
+        // Draw the bar
+        canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+        x += barWidth + 1;
+      }
+    };
+
+    draw();
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [analyser, dataArray, isMuted]);
+
+  return (
+    <canvas ref={canvasRef} className="absolute bottom-5 left-1/2 transform -translate-x-1/2 w-1/4 h-16" />
+  );
+};
+
 
 const Userbadge = ({ text }: { text: number | string }) => {
   return (
@@ -198,13 +305,13 @@ const App: React.FC = () => {
 
   const connectToAIAgent = async (action: 'start_agent' | 'stop_agent'): Promise<void> => {
 
-    const apiUrl = '/api/proxy'; 
+    const apiUrl = '/api/proxy';
     const requestBody = {
-      action, 
+      action,
       channel_name: channelId,
       uid: AI_AGENT_UID
     };
-    console.log({requestBody})
+    console.log({ requestBody })
     try {
       setConnectionState('connecting');
       const response = await fetch(apiUrl, {
@@ -214,7 +321,6 @@ const App: React.FC = () => {
         },
         body: JSON.stringify(requestBody),
       });
-  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -246,6 +352,7 @@ const App: React.FC = () => {
       try {
         await connectToAIAgent('stop_agent');
         setConnectionState('disconnected');
+        // setUsers([]) // rmeove from users
       } catch (error) {
         console.error('Disconnection failed:', error);
         setConnectionState('connected');
@@ -269,19 +376,20 @@ const App: React.FC = () => {
         client.on('user-left', handleUserLeft);
         client.on('user-published', handleUserPublished);
         client.on('stream-message', handleStreamMessage);
-        client.on('volume-indicator', (volume) => {
-          const user = volume.reduce((max, user) => {
-            if (user.level > max.level) {
-              return user;
-            }
-            return max;
-          }, volume[0]);
+        // client.on('volume-indicator', (volume) => {
+        //   const user = volume.reduce((max, user) => {
+        //     if (user.level > max.level) {
+        //       return user;
+        //     }
+        //     return max;
+        //   }, volume[0]);
 
-          console.log(user.uid);
+        //   console.log(user.uid);
 
-          const { uid } = user;
-          setMaxVolumeUser(uid);
-        });
+        //   const { uid } = user;
+        //   setMaxVolumeUser(uid);
+        // });
+
 
         // setLocalTracks([microphoneTrack, cameraTrack]);
         setLocalTracks([microphoneTrack]);
@@ -300,7 +408,7 @@ const App: React.FC = () => {
         console.log(
           `Local user joined channel successfully - userId - ${localUid} `
         );
-        if(localUid){
+        if (localUid) {
           setLocalUserId(localUid);
         }
         isLocalUserJoined.current = true;
@@ -355,15 +463,13 @@ const App: React.FC = () => {
                 onClick={handleConnectionToggle}
                 className={`
                   transition-colors
-                  ${
-                    connectionState === 'connected'
-                      ? 'bg-red-500 hover:bg-red-600'
-                      : ''
+                  ${connectionState === 'connected'
+                    ? 'bg-red-500 hover:bg-red-600'
+                    : ''
                   }
-                  ${
-                    connectionState === 'disconnected'
-                      ? 'bg-green-500 hover:bg-green-600'
-                      : ''
+                  ${connectionState === 'disconnected'
+                    ? 'bg-green-500 hover:bg-green-600'
+                    : ''
                   }
                 `}
                 disabled={connectionState === 'connecting'}
@@ -388,16 +494,14 @@ const App: React.FC = () => {
       </div>
 
       <div
-        className={`grid gap-10 ${
-          users.length ? 'grid-cols-2' : 'grid-cols-1'
-        } justify-center h-1/2 max-w-screen-lg m-auto`}
+        className={`grid gap-10 ${users.length ? 'grid-cols-2' : 'grid-cols-1'
+          } justify-center h-1/2 max-w-screen-lg m-auto`}
       >
         <div>
           <Card
             ref={localUserContainerRef}
-            className={`h-full ${
-              users.length ? 'w-full' : 'w-[600px] m-auto'
-            } aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative mb-5`}
+            className={`h-full ${users.length ? 'w-full' : 'w-[600px] m-auto'
+              } aspect-video border border-solid border-gray-300 rounded-lg overflow-hidden relative mb-5`}
             id="localUser"
           >
             {!isCameraOn && (
@@ -405,10 +509,11 @@ const App: React.FC = () => {
                 <AvatarUser imageUrl='https://github.com/shadcn.png' />
               </div>
             )}
-            {maxVolumeUser === localUserId && (
+            {/* {maxVolumeUser === localUserId && (
               <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
-            )}
+            )} */}
             <Userbadge text={'Local User'} />
+            <ActiveSpeakerAnimation audioTrack={localTracks[0]} isMuted={isMuted} />
           </Card>
           <div className="mt-auto  flex w-[300px] py-2  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
             <div className="flex space-x-4  border-t py-2 px-2">
@@ -460,10 +565,12 @@ const App: React.FC = () => {
                   <AvatarUser imageUrl={'https://img.freepik.com/premium-vector/ai-logo-template-vector-with-white-background_1023984-15077.jpg?w=360'} />
                 </div>
               )}
-              {maxVolumeUser === users[0].uid && (
+              {/* {maxVolumeUser === users[0].uid && (
                 <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
-              )}
-              <Userbadge text={users[0].uid == AI_AGENT_UID ? "AI Agent": users[0].uid} />
+              )} */}
+
+              <Userbadge text={users[0].uid == AI_AGENT_UID ? "AI Agent" : users[0].uid} />
+              {users[0]?.audioTrack && <ActiveSpeakerAnimation audioTrack={users[0]?.audioTrack} isMuted={false} />}
             </Card>
           </div>
         )}
