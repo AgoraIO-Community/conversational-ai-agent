@@ -16,7 +16,7 @@ const corsHeaders = {
 
 export async function POST(request: NextRequest) {
 
-//   return NextResponse.json({ error: 'for debug' }, { status: 200 }); // for debugging
+  return NextResponse.json({ error: 'for debug' }, { status: 200, headers: corsHeaders }); // for debugging
 
   try {
     const body = await request.json();
