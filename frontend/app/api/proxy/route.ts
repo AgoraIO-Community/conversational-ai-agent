@@ -10,38 +10,70 @@ const corsHeaders = {
   };
   
   
-  export async function OPTIONS() {
-    return NextResponse.json({}, { headers: corsHeaders });
-  }
+//   export async function OPTIONS() {
+//     return NextResponse.json({}, { headers: corsHeaders });
+//   }
 
-export async function POST(request: NextRequest) {
-
-  return NextResponse.json({ error: 'for debug' }, { status: 200, headers: corsHeaders }); // for debugging
-
-  try {
-    const body = await request.json();
-    const {action, channel_name, uid} = body
-    const requestBody = {
-        channel_name,
-        uid
-    }
-    console.log({URL: `${API_BASE_URL}/${action}`}, {body} )
-    const response = await fetch(`${API_BASE_URL}/${action}`, {
-      method: 'POST',
+export async function OPTIONS(request: Request) {
+    const allowedOrigin = request.headers.get("origin");
+    const response = new NextResponse(null, {
+      status: 200,
       headers: {
-        'Content-Type': 'application/json',
+        "Access-Control-Allow-Origin": allowedOrigin || "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+        "Access-Control-Max-Age": "86400",
       },
-      body: JSON.stringify(requestBody),
     });
-
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return NextResponse.json(data, {status:200,  headers: corsHeaders });
-  } catch (error) {
-    console.error('Proxy error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500,  headers: corsHeaders });
+  
+    return response;
   }
+
+export async function POST(request: Request) {
+    const allowedOrigin = request.headers.get("origin");
+    const response = new NextResponse(null, {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": allowedOrigin || "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  
+    return response;
 }
+
+// export async function POST(request: NextRequest) {
+
+//   return NextResponse.json({ error: 'for debug' }, { headers: corsHeaders }); // for debugging
+
+//   try {
+//     const body = await request.json();
+//     const {action, channel_name, uid} = body
+//     const requestBody = {
+//         channel_name,
+//         uid
+//     }
+//     console.log({URL: `${API_BASE_URL}/${action}`}, {body} )
+//     const response = await fetch(`${API_BASE_URL}/${action}`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify(requestBody),
+//     });
+
+//     if (!response.ok) {
+//       throw new Error(`API responded with status: ${response.status}`);
+//     }
+
+//     const data = await response.json();
+//     return NextResponse.json(data, {status:200,  headers: corsHeaders });
+//   } catch (error) {
+//     console.error('Proxy error:', error);
+//     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500,  headers: corsHeaders });
+//   }
+// }
