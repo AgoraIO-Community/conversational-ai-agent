@@ -72,9 +72,9 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const toggleMute = useCallback(async () => {
         if (localTracks[0]) {
           if (isMuted) {
-            await localTracks[0].setEnabled(true);
+            await localTracks[0].setMuted(true);
           } else {
-            await localTracks[0].setEnabled(false);
+            await localTracks[0].setMuted(false);
           }
           setIsMuted(!isMuted);
         }
