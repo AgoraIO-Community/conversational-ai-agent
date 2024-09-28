@@ -1,14 +1,11 @@
-import React, {useState} from 'react';
+import React, {useContext} from 'react';
 import { Button } from '@/components/ui/button';
 import { AI_AGENT_STATE, AIAgentState, AgentState, AI_AGENT_UID} from "@/utils/const"
 import { Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { ToastAction } from "@/components/ui/toast"
-interface AgentControlProps {
-    handleConnectionToggle: () => void;
-    agentConnectionState: AIAgentState
-    // agentConnectionState: AgentState
-}
+import { AgentContext } from '@/app/AgentContext';
+
 const connectToAIAgent = async (agentAction: 'start_agent' | 'stop_agent', channel_name: string): Promise<void> => {
 
     const apiUrl = '/api/proxy'; 
@@ -17,6 +14,7 @@ const connectToAIAgent = async (agentAction: 'start_agent' | 'stop_agent', chann
       channel_name: channel_name,
       uid: AI_AGENT_UID
     };
+    console.log({requestBody})
     try {
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -41,10 +39,10 @@ const connectToAIAgent = async (agentAction: 'start_agent' | 'stop_agent', chann
       console.error(`Failed to ${agentAction} AI agent connection:`, error);
       throw error;
     }
-  };
+};
 
 export const AgentControl: React.FC<{channel_name: string}> = ({channel_name}) => {
-    const [agentConnectionState, setAgentConnectionState] = useState<AIAgentState>(AgentState.NOT_CONNECTED);
+    const {agentConnectionState, setAgentConnectionState} = useContext(AgentContext);
     const { toast } = useToast()  
     console.log("Agent Control--", {agentConnectionState}, {bth: AI_AGENT_STATE[agentConnectionState]})
 
@@ -55,15 +53,16 @@ export const AgentControl: React.FC<{channel_name: string}> = ({channel_name}) =
             try{
               setAgentConnectionState(AgentState.REQUEST_SENT);
               await connectToAIAgent('start_agent', channel_name);
-              setAgentConnectionState(AgentState.AGENT_CONNECTED);
+              setAgentConnectionState(AgentState.AWAITING_JOIN);
               toast({
-                title: "Agent Connected",
+                title: "Agent requested to connect",
+                description: "Waiting for agent to join the channel"
               })
 
             }catch(agentConnectError){
               setAgentConnectionState(AgentState.AGENT_REQUEST_FAILED);
               toast({
-                title: "Uh oh! Failed to connect",
+                title: "Uh oh! Agent failed to connect",
                 description: `${agentConnectError}`,
                 variant: "destructive",
                 action: <ToastAction altText="Try again">Try again</ToastAction>,
@@ -78,12 +77,12 @@ export const AgentControl: React.FC<{channel_name: string}> = ({channel_name}) =
               await connectToAIAgent('stop_agent', channel_name);
               setAgentConnectionState(AgentState.NOT_CONNECTED);
               toast({
-                title: "Agent Disconnected",
+                title: "Agent disconnect requested",
               })
             }catch(agentDisconnectError){
               setAgentConnectionState(AgentState.AGENT_DISCONNECT_FAILED);
               toast({
-                title: "Uh oh! Failed to disconnect",
+                title: "Uh oh! Agent failed to disconnect",
                 description: `${agentDisconnectError}`,
                 variant: "destructive",
                 action: <ToastAction altText="Try again">Try again</ToastAction>,
@@ -118,6 +117,10 @@ export const AgentControl: React.FC<{channel_name: string}> = ({channel_name}) =
         {(agentConnectionState === AgentState.REQUEST_SENT || agentConnectionState === AgentState.AGENT_DISCONNECT_REQUEST) && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         )}
+        {(agentConnectionState === AgentState.AWAITING_JOIN) && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
+
         {`${AI_AGENT_STATE[agentConnectionState]}` }
         </Button>
         </div>
