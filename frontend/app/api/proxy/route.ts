@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const API_BASE_URL = process.env.AGORA_AI_AGENT_URL || "http://47.251.115.141:8081";
 
 
-export const corsHeaders = {
+const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
