@@ -102,12 +102,6 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         router.push('/');
       }, [isCallActive, localTracks]);
     
-      useEffect(() => {
-        if(users.length){
-          const aiAgentUID = users.filter((item) => item.uid === AI_AGENT_UID);
-    
-        }
-      },[users])
 
       const handleUserJoined = useCallback((user: IAgoraRTCRemoteUser) => {
         console.log('user joined', user, user.uid, AI_AGENT_UID);

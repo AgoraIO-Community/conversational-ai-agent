@@ -1,10 +1,11 @@
-import React, {useContext} from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { AI_AGENT_STATE, AIAgentState, AgentState, AI_AGENT_UID} from "@/utils/const"
 import { Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { ToastAction } from "@/components/ui/toast"
 import { AgentContext } from '@/app/AgentContext';
+import { UserContext } from '@/app/UserContext';
 
 const connectToAIAgent = async (agentAction: 'start_agent' | 'stop_agent', channel_name: string): Promise<void> => {
 
@@ -43,6 +44,7 @@ const connectToAIAgent = async (agentAction: 'start_agent' | 'stop_agent', chann
 
 export const AgentControl: React.FC<{channel_name: string}> = ({channel_name}) => {
     const {agentConnectionState, setAgentConnectionState} = useContext(AgentContext);
+    const { users } = useContext(UserContext)
     const { toast } = useToast()  
     console.log("Agent Control--", {agentConnectionState}, {bth: AI_AGENT_STATE[agentConnectionState]})
 
@@ -54,10 +56,7 @@ export const AgentControl: React.FC<{channel_name: string}> = ({channel_name}) =
               setAgentConnectionState(AgentState.REQUEST_SENT);
               await connectToAIAgent('start_agent', channel_name);
               setAgentConnectionState(AgentState.AWAITING_JOIN);
-              toast({
-                title: "Agent requested to connect",
-                description: "Waiting for agent to join the channel"
-              })
+              toast({title: "Agent requested to join"})
 
             }catch(agentConnectError){
               setAgentConnectionState(AgentState.AGENT_REQUEST_FAILED);
@@ -75,10 +74,8 @@ export const AgentControl: React.FC<{channel_name: string}> = ({channel_name}) =
             try{
               setAgentConnectionState(AgentState.AGENT_DISCONNECT_REQUEST);
               await connectToAIAgent('stop_agent', channel_name);
-              setAgentConnectionState(AgentState.NOT_CONNECTED);
-              toast({
-                title: "Agent disconnect requested",
-              })
+              setAgentConnectionState(AgentState.AWAITING_LEAVE);
+              toast({ title: "Agent disconnecting..."})
             }catch(agentDisconnectError){
               setAgentConnectionState(AgentState.AGENT_DISCONNECT_FAILED);
               toast({
@@ -95,6 +92,29 @@ export const AgentControl: React.FC<{channel_name: string}> = ({channel_name}) =
         }
       };
     
+      useEffect(() => {
+        console.log("agent contrl", {users})
+        // welcome agent
+        if(users.length){
+          const aiAgentUID = users.filter((item) => item.uid === AI_AGENT_UID);
+          console.log("agent contrl",{aiAgentUID})
+          if(aiAgentUID.length){
+            setAgentConnectionState(AgentState.AGENT_CONNECTED);
+            toast({title: "Say Hi!!"})
+          }
+        }
+        // when agent leaves, show left toast, and set agent to not connected state
+        if(!users.length && agentConnectionState === AgentState.AWAITING_LEAVE){
+            toast({ title: "Agent left the call"})
+            setAgentConnectionState(AgentState.NOT_CONNECTED);
+        }
+      },[users])
+
+    const isLoading = (agentConnectionState === AgentState.REQUEST_SENT 
+        || agentConnectionState === AgentState.AGENT_DISCONNECT_REQUEST 
+        || agentConnectionState === AgentState.AWAITING_LEAVE 
+        || agentConnectionState === AgentState.AWAITING_JOIN)
+
     return(
         <div>
         <Button
@@ -112,12 +132,9 @@ export const AgentControl: React.FC<{channel_name: string}> = ({channel_name}) =
                 : ''
             }
         `}
-        disabled={agentConnectionState === AgentState.REQUEST_SENT || agentConnectionState === AgentState.AGENT_DISCONNECT_REQUEST}
+        disabled={isLoading}
         >
-        {(agentConnectionState === AgentState.REQUEST_SENT || agentConnectionState === AgentState.AGENT_DISCONNECT_REQUEST) && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        )}
-        {(agentConnectionState === AgentState.AWAITING_JOIN) && (
+        {isLoading && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         )}
 
