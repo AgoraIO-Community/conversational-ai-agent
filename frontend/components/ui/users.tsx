@@ -68,7 +68,7 @@ export const Users: React.FC<{channel_name: string}> = () => {
             {maxVolumeUser === localUserId && (
               <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
             )}
-            <Userbadge text={'Local User'} />
+            <Userbadge text={'You'} />
         </Card>
         <div className="mt-auto  flex w-[300px] py-2  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
           <div className="flex space-x-4  border-t py-2 px-2">
