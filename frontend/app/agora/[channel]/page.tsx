@@ -59,7 +59,7 @@ const ActiveSpeakerAnimation = ({ audioTrack, isMuted }: { audioTrack: IMicropho
     if (!audioTrack || isMuted) {
       // Clean up if track is null or muted
       if (audioContext) {
-        audioContext.close();
+        audioContext.state !== 'closed' && audioContext.close();
         setAudioContext(null);
         setAnalyser(null);
         setDataArray(null);
