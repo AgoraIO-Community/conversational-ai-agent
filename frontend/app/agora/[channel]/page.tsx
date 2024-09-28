@@ -29,10 +29,12 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import {waitForRemoteUser} from "@/utils/utils"
+import { AI_AGENT_STATE, AIAgentState, AgentState} from "@/utils/const"
+import { AgentControl } from '@/components/ui/agentcontrol';
 
-const AI_AGENT_UID:UID = '123';
+const AI_AGENT_UID:UID = 123;
 const AvatarUser = ({ imageUrl }: { imageUrl: string }) => {
   return (
     <Avatar style={{ zIndex: 1, width: '120px', height: '120px' }}>
@@ -81,10 +83,6 @@ const App: React.FC = () => {
   const [isCallActive, setIsCallActive] = useState(true);
   const [maxVolumeUser, setMaxVolumeUser] = useState<UID>('');
   const router = useRouter();
-  const [connectionState, setConnectionState] = useState<
-    'disconnected' | 'connecting' | 'connected'
-  >('disconnected');
-
   if (!appID || !channelId) {
     redirect('/');
   }
@@ -122,22 +120,29 @@ const App: React.FC = () => {
     router.push('/');
   }, [isCallActive, localTracks]);
 
-  const handleUserJoined = useCallback((user: IAgoraRTCRemoteUser) => {
-    console.log('user joined', user);
-    if (user.uid === localUserId) {
-      return;
+  useEffect(() => {
+    if(users.length){
+      const aiAgentUID = users.filter((item) => item.uid === AI_AGENT_UID);
+
     }
-    console.log({ userId: user.uid }, { localUserId });
-    setUsers((prevUsers) => {
-      if (!prevUsers.some((u) => u.uid === user.uid)) {
-        return [...prevUsers, user];
-      }
-      return prevUsers;
-    });
+  },[users])
+  const handleUserJoined = useCallback((user: IAgoraRTCRemoteUser) => {
+    console.log('user joined', user, user.uid, AI_AGENT_UID);
+    if(user.uid === AI_AGENT_UID){
+      setUsers((prevUsers) => {
+        if (!prevUsers.some((u) => u.uid === user.uid)) {
+          return [...prevUsers, user];
+        }
+        return prevUsers;
+      });  
+    }
   }, []);
 
   const handleUserLeft = useCallback((user: IAgoraRTCRemoteUser) => {
     console.log('user left', user);
+    if(user.uid === AI_AGENT_UID){
+
+    }
     setUsers((prevUsers) => prevUsers.filter((u) => u.uid !== user.uid));
   }, []);
 
@@ -196,79 +201,24 @@ const App: React.FC = () => {
     []
   );
 
-  const connectToAIAgent = async (action: 'start_agent' | 'stop_agent'): Promise<void> => {
-
-    const apiUrl = '/api/proxy'; 
-    const requestBody = {
-      action, 
-      channel_name: channelId,
-      uid: AI_AGENT_UID
-    };
-    console.log({requestBody})
-    try {
-      setConnectionState('connecting');
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setConnectionState(action === 'start_agent' ? 'connected' : 'disconnected');
-      console.log(
-        `AI agent ${action === 'start_agent' ? 'connected' : 'disconnected'}`,
-        data
-      );
-    } catch (error) {
-      console.error(`Failed to ${action} AI agent connection:`, error);
-      throw error;
-    }
-  };
-
-  const handleConnectionToggle = useCallback(async () => {
-    if (connectionState === 'disconnected') {
-      setConnectionState('connecting');
-      try {
-        await connectToAIAgent('start_agent');
-        setConnectionState('connected');
-      } catch (error) {
-        console.error('Connection failed:', error);
-        setConnectionState('disconnected');
-      }
-    } else if (connectionState === 'connected') {
-      setConnectionState('connecting');
-      try {
-        await connectToAIAgent('stop_agent');
-        setConnectionState('disconnected');
-      } catch (error) {
-        console.error('Disconnection failed:', error);
-        setConnectionState('connected');
-      }
-    }
-  }, [connectionState]);
 
   useEffect(() => {
     if (hasAttemptedJoin.current) return;
     hasAttemptedJoin.current = true;
 
-    const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
-    clientRef.current = client;
-
+    let client:IAgoraRTCClient 
     const init = async () => {
       try {
+        client  = await AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+        clientRef.current = client;
+        client.on('user-left', handleUserLeft);
+        client.on('user-joined', handleUserJoined)
+        client.on('user-published', handleUserPublished);
+        client.on('stream-message', handleStreamMessage);
+
         // const [microphoneTrack, cameraTrack] =
         //   await AgoraRTC.createMicrophoneAndCameraTracks();
         const microphoneTrack = await AgoraRTC.createMicrophoneAudioTrack();
-        client.on('user-joined', handleUserJoined);
-        client.on('user-left', handleUserLeft);
-        client.on('user-published', handleUserPublished);
-        client.on('stream-message', handleStreamMessage);
         client.on('volume-indicator', (volume) => {
           const user = volume.reduce((max, user) => {
             if (user.level > max.level) {
@@ -350,32 +300,7 @@ const App: React.FC = () => {
                 Participants: {users.length + 1}
               </p>
             </div>
-            <div>
-              <Button
-                onClick={handleConnectionToggle}
-                className={`
-                  transition-colors
-                  ${
-                    connectionState === 'connected'
-                      ? 'bg-red-500 hover:bg-red-600'
-                      : ''
-                  }
-                  ${
-                    connectionState === 'disconnected'
-                      ? 'bg-green-500 hover:bg-green-600'
-                      : ''
-                  }
-                `}
-                disabled={connectionState === 'connecting'}
-              >
-                {connectionState === 'connecting' && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                {connectionState === 'disconnected' && 'Connect Agent'}
-
-                {connectionState === 'connected' && 'Disconnect'}
-              </Button>
-            </div>
+            <AgentControl channel_name={channelId}/>
           </div>
           <Separator className="my-4" />
         </div>

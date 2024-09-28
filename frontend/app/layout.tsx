@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { useState } from "react";
 import { AppRootProvider } from "./AppRootContext";
+import { Toaster } from "@/components/ui/toaster"
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,6 +33,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AppRootProvider>
+        <Toaster />
           {children}
         </AppRootProvider>
       </body>
