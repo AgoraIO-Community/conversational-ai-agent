@@ -185,7 +185,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         let client:IAgoraRTCClient 
         const init = async () => {
           try {
-            client  = await AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+            client  = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
             clientRef.current = client;
             client.on('user-left', handleUserLeft);
             client.on('user-joined', handleUserJoined)

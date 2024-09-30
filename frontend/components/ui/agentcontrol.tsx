@@ -29,12 +29,13 @@ const connectToAIAgent = async (agentAction: 'start_agent' | 'stop_agent', chann
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      // const data = await response.json();
+      console.log({agentResponse: response})
 
-      console.log({data})
+      // console.log({data})
       console.log(
-        `AI agent ${agentAction === 'start_agent' ? 'connected' : 'disconnected'}`,
-        data
+        `AI agent ${agentAction === 'start_agent' ? 'connected' : 'disconnected'}`, 
+        response
       );
     } catch (error) {
       console.error(`Failed to ${agentAction} AI agent connection:`, error);
