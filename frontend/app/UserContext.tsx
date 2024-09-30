@@ -22,7 +22,8 @@ export interface UserContextInterface {
     isMuted: boolean, 
     toggleCall: () => void, 
     isCallActive: boolean,
-    remoteUsersContainerRef: RefObject<HTMLDivElement> | null
+    remoteUsersContainerRef: RefObject<HTMLDivElement> | null,
+    localTracks: [IMicrophoneAudioTrack | null]
 }
 
 export const UserContext = createContext<UserContextInterface>({
@@ -35,8 +36,8 @@ export const UserContext = createContext<UserContextInterface>({
     isMuted: false, 
     toggleCall: () => {}, 
     isCallActive: false,
-    remoteUsersContainerRef: null
-
+    remoteUsersContainerRef: null,
+    localTracks: [null]
 })
 
 export const UserProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
@@ -275,7 +276,8 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({children}) 
             isMuted, 
             toggleCall, 
             isCallActive,
-            remoteUsersContainerRef
+            remoteUsersContainerRef,
+            localTracks
         }}>
             {children}
         </UserContext.Provider>

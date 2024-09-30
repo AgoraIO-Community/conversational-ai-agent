@@ -6,20 +6,16 @@ import React, {
   useContext,
 } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { redirect } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import {
   Mic,
   MicOff,
-  Camera,
-  CameraOff,
   Phone,
   PhoneOff,
-  Loader2,
-  Loader,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserContext } from '@/app/UserContext';
+import {ActiveSpeakerAnimation} from "@/components/ui/ActivespeakerAudiowaves"
 
 import { AI_AGENT_UID } from "@/utils/const"
 const AvatarUser = ({ imageUrl }: { imageUrl: string }) => {
@@ -44,7 +40,19 @@ const Userbadge = ({ text }: { text: number | string }) => {
 
 
 export const Users: React.FC<{channel_name: string}> = () => {
-   const {users, localUserContainerRef, isCameraOn, maxVolumeUser, localUserId, toggleMute, isMuted, toggleCall, isCallActive, remoteUsersContainerRef} = useContext(UserContext)
+   const {
+    users, 
+    localUserContainerRef, 
+    isCameraOn, 
+    maxVolumeUser, 
+    localUserId, 
+    toggleMute, 
+    isMuted, 
+    toggleCall, 
+    isCallActive, 
+    remoteUsersContainerRef,
+    localTracks
+    } = useContext(UserContext)
 
     return (
         <div
@@ -65,10 +73,8 @@ export const Users: React.FC<{channel_name: string}> = () => {
                 <AvatarUser imageUrl='https://github.com/shadcn.png' />
               </div>
             )}
-            {maxVolumeUser === localUserId && (
-              <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
-            )}
             <Userbadge text={'You'} />
+            <ActiveSpeakerAnimation audioTrack={localTracks[0]} isMuted={isMuted} />
         </Card>
         <div className="mt-auto  flex w-[300px] py-2  mx-auto justify-evenly items-center  rounded-[4px] my-5 ">
           <div className="flex space-x-4  border-t py-2 px-2">
@@ -120,10 +126,8 @@ export const Users: React.FC<{channel_name: string}> = () => {
               <AvatarUser imageUrl={'https://img.freepik.com/premium-vector/ai-logo-template-vector-with-white-background_1023984-15077.jpg?w=360'} />
             </div>
           )}
-          {maxVolumeUser === users[0].uid && (
-            <span className="animate-ping absolute z-40 inline-flex h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
-          )}
-          <Userbadge text={users[0].uid == AI_AGENT_UID ? "AI Agent": users[0].uid} />
+          <Userbadge text={users[0].uid == AI_AGENT_UID ? "OpenAI": users[0].uid} />
+          {users[0]?.audioTrack && <ActiveSpeakerAnimation audioTrack={users[0]?.audioTrack} isMuted={false} />}
         </Card>
       </div>
     )}        
