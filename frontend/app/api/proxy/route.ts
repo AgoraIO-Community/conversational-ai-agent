@@ -3,10 +3,54 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_BASE_URL = process.env.AGORA_AI_AGENT_URL || "http://47.251.115.141:8081";
 
+
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  };
+  
+  
+//   export async function OPTIONS() {
+//     return NextResponse.json({}, { headers: corsHeaders });
+//   }
+
+export async function OPTIONS(request: Request) {
+    const allowedOrigin = request.headers.get("origin");
+    const response = new NextResponse(null, {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": allowedOrigin || "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  
+    return response;
+  }
+
+// export async function POST(request: Request) {
+//     const allowedOrigin = request.headers.get("origin");
+//     const response = new NextResponse(null, {
+//       status: 200,
+//       headers: {
+//         "Access-Control-Allow-Origin": allowedOrigin || "http://localhost:9000",
+//         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+//         "Access-Control-Allow-Headers":
+//           "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+//         "Access-Control-Max-Age": "86400",
+//       },
+//     });
+  
+//     return response;
+// }
+
 export async function POST(request: NextRequest) {
 
-//   return NextResponse.json({ error: 'for debug' }, { status: 200 }); // for debugging
+//   return NextResponse.json({ error: 'for debug' }, { headers: corsHeaders }); // for debugging
 
+const allowedOrigin = request.headers.get("origin");
   try {
     const body = await request.json();
     const {action, channel_name, uid} = body
@@ -28,9 +72,34 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+
+    const nextResponse = new NextResponse(data, {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": allowedOrigin || "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  
+    return nextResponse;
+
+    // return NextResponse.json(data, {status:200,  headers: corsHeaders });
   } catch (error) {
     console.error('Proxy error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    // return NextResponse.json({ error: 'Internal Server Error' }, { status: 500,  headers: corsHeaders });
+    return new NextResponse(null, {
+        status: 200,
+        headers: {
+          "Access-Control-Allow-Origin": allowedOrigin || "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers":
+            "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+          "Access-Control-Max-Age": "86400",
+        },
+      });
+    
   }
 }

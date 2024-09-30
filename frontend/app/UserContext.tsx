@@ -72,9 +72,9 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const toggleMute = useCallback(async () => {
         if (localTracks[0]) {
           if (isMuted) {
-            await localTracks[0].setEnabled(true);
+            await localTracks[0].setMuted(true);
           } else {
-            await localTracks[0].setEnabled(false);
+            await localTracks[0].setMuted(false);
           }
           setIsMuted(!isMuted);
         }
@@ -185,7 +185,7 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         let client:IAgoraRTCClient 
         const init = async () => {
           try {
-            client  = await AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+            client  = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
             clientRef.current = client;
             client.on('user-left', handleUserLeft);
             client.on('user-joined', handleUserJoined)
