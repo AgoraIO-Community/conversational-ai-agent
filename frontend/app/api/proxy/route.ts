@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
 //   return NextResponse.json({ error: 'for debug' }, { headers: corsHeaders }); // for debugging
 
 const allowedOrigin = request.headers.get("origin");
+console.log({allowedOrigin})
   try {
     const body = await request.json();
     const {action, channel_name, uid} = body
