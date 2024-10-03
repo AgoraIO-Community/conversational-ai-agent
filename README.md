@@ -1,6 +1,6 @@
 # conversational-ai-agent
 
-This repository contains a front-end example of a web application that connects users with a conversational AI using Agora's real-time communication technology.
+This git repository contains a front-end example of a web application that connects users with a conversational AI using Agora's real-time communication technology.
 
 ## Overview
 
